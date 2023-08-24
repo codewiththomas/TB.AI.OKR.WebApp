@@ -1,0 +1,142 @@
+﻿@page "/okrproposal"
+@using System.Text;
+@using TB.GPT4All.ApiClient;
+@using TB.OpenAI.ApiClient;
+@using TB.OpenAI.ApiClient.Contracts.Chat;
+<h3>OkrProposalPage</h3>
+
+<ul>
+@foreach (var instruction in GetInstructionSetWithPlaceholders(Instructions, Placeholders))
+{
+    <li class="small">@instruction</li>
+}
+</ul>
+
+<InputText @bind-Value="Text"  />
+
+<button @onclick="@HandleSubmitButtonClick">Submit</button>
+
+@if (!string.IsNullOrWhiteSpace(Prompt))
+{
+    <div>
+        <strong>Prompt: </strong>@Prompt
+    </div>
+}
+
+@if (!string.IsNullOrWhiteSpace(Answer))
+{
+    <div>
+        <strong>Answer: </strong>@Answer
+    </div>
+}
+
+@if (DebugInfos.Any())
+{
+    <div><strong>DebugInfos:</strong></div>
+    <ul>
+    @foreach (var debugInfo in DebugInfos)
+    {
+        <li>@debugInfo</li>
+    }
+    </ul>
+}
+
+
+@code {
+    [Inject] public IOpenAiApiClient? OpenAiApiClient { get; set; }
+    [Inject] public IGPT4AllApiClient? GPT4AllApiClient { get; set; }
+
+    public string Text { get; set; } = string.Empty;
+
+    public string Prompt { get; set; } = string.Empty;
+    public string Answer { get; set; } = string.Empty;
+    public IEnumerable<string> DebugInfos { get; set; } = new List<string>();
+
+    private readonly IDictionary<string, string> Placeholders = new Dictionary<string, string>();
+
+    private readonly IEnumerable<string> Instructions = new List<string>
+    {
+        /* Setting the environment */
+        "You are in the role of an OKR master in a company that uses Objectives and Key Results. Your task is to help people " +
+        "formulating good okr sets from a written idea.",        
+
+        /* A user provided the following idea that must be transformed in an OKR set*/
+        "A user provided the following idea that must be transformed in an OKR set. Start of idea: \"[TEXT]\". This is the end of the idea.",
+
+        /* Define criteria for good OKR. */
+
+        "If the idea does not contain enough information to create a good OKR set then return an error and give hints what could be done better." + 
+        "Return error messages as JSON in the format { \"success\" : false, \"messages\" : [ \"HINTS\" ] } where HINTS contain the error message " +
+        "and your suggestions.",
+
+        /* Instruction how to return the result */
+        "If the idea contains enough information to create a OKR set from it return a successful results as JSON in the following structure " + 
+        "{ \"objective\" : \"OBJECTIVETEXT\", \"keyresults\": [ \"KR_1\", \"KR2\", ..., \"KR_n\" ] } where " +
+        "OBJECTIVETEXT and KR_1 to KR_n are meant as placeholders for the set you created."
+    };
+
+
+    private IEnumerable<string> GetInstructionSetWithPlaceholders(IEnumerable<string> instructions, IDictionary<string, string> placeholders)
+    {
+        var prompt = new List<string>();
+
+        foreach (var instruction in instructions)
+        {
+            var newInstruction = instruction;
+            foreach (var placeholder in placeholders)
+            {
+                newInstruction = newInstruction.Replace(placeholder.Key, placeholder.Value);
+            }
+            prompt.Add(newInstruction);
+        }
+
+        return prompt;
+    }
+
+
+    private string BuildPrompt(IEnumerable<string> instructions)
+        => string.Join("\n ", instructions);
+
+
+    private async Task HandleSubmitButtonClick()
+    {
+        Answer = string.Empty;
+        DebugInfos = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(Text))
+        {
+            Prompt = string.Empty;
+            Answer = "You must not enter an empty string!";
+            StateHasChanged();
+            return;
+        }
+
+        if (!Placeholders.ContainsKey("[TEXT]"))
+        {
+            Placeholders.Add("[TEXT]", string.Empty);
+        }
+
+        Placeholders["[TEXT]"] = Text;
+
+        var instructions = GetInstructionSetWithPlaceholders(Instructions, Placeholders);
+
+        Prompt = BuildPrompt(instructions);
+
+        var chatCompletionRequest = new CreateChatCompletionRequest();
+        chatCompletionRequest.Messages.Add(new CreateChatCompletionRequestMessage
+        {
+            Content = Prompt
+        });
+
+        var answer = await OpenAiApiClient!.Chat.CreateChatCompletionAsync(chatCompletionRequest);
+
+        foreach (var choice in answer.Choices)
+        {
+            Answer += choice?.Message?.Content ?? "LEER";
+        }
+
+        DebugInfos = answer.DebugInfos;
+
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,51 @@
+using TB.OpenAI.ApiClient;
+using TB.GPT4All.ApiClient;
+using TB.AI.OKR.WebApp.Persistence.Contexts;
+
+namespace TB.AI.OKR.WebApp;
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
+
+        #region Add services to the container.
+        
+        builder.Services.AddRazorPages();
+        builder.Services.AddServerSideBlazor();
+        
+        /* Include the self-written ApiClient */
+        builder.Services.AddOpenAiApiClient(builder.Configuration);
+        builder.Services.AddGPT4AllApiClient(builder.Configuration);
+
+        /* Add persistence layer */
+        builder.Services.AddDbContext<ApplicationDbContext>();
+        
+        #endregion
+
+        var app = builder.Build();
+
+        #region Configure the HTTP request pipeline (Order matters!). 
+
+        if (!app.Environment.IsDevelopment())
+        {
+            app.UseExceptionHandler("/Error");
+            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+            app.UseHsts();
+        }
+
+        app.UseHttpsRedirection();
+
+        app.UseStaticFiles();
+
+        app.UseRouting();
+
+        app.MapBlazorHub();
+        app.MapFallbackToPage("/_Host");
+
+        #endregion
+
+        app.Run();
+    }
+}

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TB.GPT4All.ApiClient.Abstraction\TB.GPT4All.ApiClient.Abstraction.csproj" />
+    <ProjectReference Include="..\TB.OpenAI.ApiClient\TB.OpenAI.ApiClient.csproj" />
+  </ItemGroup>
+
+</Project>
