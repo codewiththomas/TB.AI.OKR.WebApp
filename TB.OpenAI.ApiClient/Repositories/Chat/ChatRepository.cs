@@ -6,6 +6,11 @@ namespace TB.OpenAI.ApiClient.Repositories.Chat;
 
 public class ChatRepository : BaseRepository, IChatRepository
 {
+
+    public ChatRepository(OpenAiApiSettings settings)
+        : base(settings)
+    { }
+
     public async Task<CreateChatCompletionResponse> CreateChatCompletionAsync(CreateChatCompletionRequest createChatCompletionRequest)
     {
         var httpClient = GetAuthenticatedHttpClient();
@@ -24,8 +29,7 @@ public class ChatRepository : BaseRepository, IChatRepository
         }
 
         result.DebugInfos.Add($"Request URL: {requestUrl}");
-        result.DebugInfos.Add($"Request content: {JsonSerializer.Serialize(createChatCompletionRequest)}");
-        result.DebugInfos.Add($"ApiKey: {OpenAiApiSettings.ApiKey}");
+        result.DebugInfos.Add($"Request content: {JsonSerializer.Serialize(createChatCompletionRequest)}");        
         result.DebugInfos.Add($"Content: {responseContent}");
 
         return result!;

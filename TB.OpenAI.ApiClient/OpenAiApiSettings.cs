@@ -1,10 +1,10 @@
 ﻿namespace TB.OpenAI.ApiClient;
 
-internal static class OpenAiApiSettings
+public class OpenAiApiSettings
 {
-    public static string ApiKey { get; set; } = string.Empty;
+    public string ApiKey { get; set; } = string.Empty;
 
-    public static string BaseUrl { get; set; } = string.Empty;
+    public string BaseUrl { get; set; } = string.Empty;
 
-    public static string? OrganizationId { get; set; }
+    public string? OrganizationId { get; set; }
 }

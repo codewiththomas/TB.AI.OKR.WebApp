@@ -23,34 +23,90 @@
     </div>
 }
 
-@if (!string.IsNullOrWhiteSpace(Answer))
-{
-    <div>
-        <strong>Answer: </strong>@Answer
-    </div>
-}
+<table>
 
-@if (DebugInfos.Any())
-{
-    <div><strong>DebugInfos:</strong></div>
-    <ul>
-    @foreach (var debugInfo in DebugInfos)
-    {
-        <li>@debugInfo</li>
-    }
-    </ul>
-}
+    <thead>
+        <tr>
+            <th style="width:50%">OpenAI</th>
+            <th style="width:50%">GPT4All</th>
+        </tr>
+    </thead>
+
+    <tr>
+
+        <td style="width:50%;">
+            @if (!string.IsNullOrWhiteSpace(OpenAiAnswer))
+            {
+                <div>
+                    <strong>Answer: </strong>@OpenAiAnswer
+                </div>
+            }
+        </td>
+        <td style="width:50%;">
+            @if (!string.IsNullOrWhiteSpace(Gpt4AllAnswer))
+            {
+                <div>
+                    <strong>Answer: </strong>@Gpt4AllAnswer
+                </div>
+            }
+        </td>
+
+    </tr>
+
+    <tr>
+
+        <td>
+            @if (OpenAiDebugInfos.Any())
+            {
+                <div><strong>DebugInfos:</strong></div>
+                <ul>
+                    @foreach (var debugInfo in OpenAiDebugInfos)
+                    {
+                        <li>@debugInfo</li>
+                    }
+                </ul>
+            }
+        </td>
+        <td>
+            @if (OpenAiDebugInfos.Any())
+            {
+                <div><strong>DebugInfos:</strong></div>
+                <ul>
+                    @foreach (var debugInfo in Gpt4AllDebugInfos)
+                    {
+                        <li>@debugInfo</li>
+                    }
+                </ul>
+            }
+        </td>
+
+    </tr>
+</table>
+
+
+
+
 
 
 @code {
     [Inject] public IOpenAiApiClient? OpenAiApiClient { get; set; }
     [Inject] public IGPT4AllApiClient? GPT4AllApiClient { get; set; }
 
+    #region Provider-specific properties
+
+    public string OpenAiAnswer { get; set; } = string.Empty;
+    public IList<string> OpenAiDebugInfos { get; set; } = new List<string>();
+
+    public string Gpt4AllAnswer { get; set; } = string.Empty;
+    public IList<string> Gpt4AllDebugInfos { get; set; } = new List<string>();
+
+    #endregion
+
+
     public string Text { get; set; } = string.Empty;
 
     public string Prompt { get; set; } = string.Empty;
-    public string Answer { get; set; } = string.Empty;
-    public IEnumerable<string> DebugInfos { get; set; } = new List<string>();
+
 
     private readonly IDictionary<string, string> Placeholders = new Dictionary<string, string>();
 
@@ -76,7 +132,15 @@
     };
 
 
-    private IEnumerable<string> GetInstructionSetWithPlaceholders(IEnumerable<string> instructions, IDictionary<string, string> placeholders)
+    /// <summary>
+    /// Searches a list of instructions and replaces placeholders by values.
+    /// </summary>
+    /// <param name="instructions"></param>
+    /// <param name="placeholders"></param>
+    /// <returns></returns>
+    private IEnumerable<string> GetInstructionSetWithPlaceholders(
+        IEnumerable<string> instructions, 
+        IDictionary<string, string> placeholders)
     {
         var prompt = new List<string>();
 
@@ -94,19 +158,32 @@
     }
 
 
+    /// <summary>
+    /// Turns an list of instructions into a string.
+    /// </summary>
+    /// <param name="instructions"></param>
+    /// <returns></returns>
     private string BuildPrompt(IEnumerable<string> instructions)
         => string.Join("\n ", instructions);
 
 
+    /// <summary>
+    /// Gets invoked when submit button is pressed. Resets answer and debug fields and calls
+    /// the Apis of OpenAI and GPT4All.
+    /// </summary>
+    /// <returns></returns>
     private async Task HandleSubmitButtonClick()
     {
-        Answer = string.Empty;
-        DebugInfos = new List<string>();
+        OpenAiAnswer = string.Empty;
+        OpenAiDebugInfos = new List<string>();
+
+        Gpt4AllAnswer = string.Empty;
+        Gpt4AllDebugInfos = new List<string>();
 
         if (string.IsNullOrWhiteSpace(Text))
         {
             Prompt = string.Empty;
-            Answer = "You must not enter an empty string!";
+            OpenAiAnswer = "You must not enter an empty string!";
             StateHasChanged();
             return;
         }
@@ -128,14 +205,63 @@
             Content = Prompt
         });
 
-        var answer = await OpenAiApiClient!.Chat.CreateChatCompletionAsync(chatCompletionRequest);
+        await GetOpenAiChatCompletion(chatCompletionRequest);
+        await GetGPT4AllChatCompletion(chatCompletionRequest);
+    }
 
-        foreach (var choice in answer.Choices)
+
+    /// <summary>
+    /// Calls the chat completion endpoint of the OpenAI API.
+    /// </summary>
+    /// <param name="chatCompletionRequest"></param>
+    /// <returns></returns>
+    public async Task<bool> GetOpenAiChatCompletion(CreateChatCompletionRequest chatCompletionRequest)
+    {
+        try
         {
-            Answer += choice?.Message?.Content ?? "LEER";
+
+            var answer = await OpenAiApiClient!.Chat.CreateChatCompletionAsync(chatCompletionRequest);
+
+            foreach (var choice in answer.Choices)
+            {
+                OpenAiAnswer += choice?.Message?.Content ?? "LEER";
+            }
+
+            OpenAiDebugInfos = answer.DebugInfos;
+        }
+        catch (Exception ex)
+        {
+            OpenAiDebugInfos.Add("ERROR: " + ex.Message);
         }
 
-        DebugInfos = answer.DebugInfos;
+        StateHasChanged();
+
+        return true;
+    }
+
+
+    /// <summary>
+    /// Calls the chat completion API of the GPT4All API.
+    /// </summary>
+    /// <param name="chatCompletionRequest"></param>
+    /// <returns></returns>
+    public async Task GetGPT4AllChatCompletion(CreateChatCompletionRequest chatCompletionRequest)
+    {
+        try
+        {
+            var answer = await GPT4AllApiClient!.Chat.CreateChatCompletionAsync(chatCompletionRequest);
+
+            foreach (var choice in answer.Choices)
+            {
+                Gpt4AllAnswer += choice?.Message?.Content ?? "LEER";
+            }
+
+            Gpt4AllDebugInfos = answer.DebugInfos;
+        }
+        catch (Exception ex)
+        {
+            Gpt4AllDebugInfos.Add("ERROR: " + ex.Message);
+        }
 
         StateHasChanged();
     }

@@ -4,6 +4,11 @@ namespace TB.OpenAI.ApiClient.Repositories.Models;
 
 public class ModelsRepository : BaseRepository, IModelsRepository
 {
+    public ModelsRepository(OpenAiApiSettings settings)
+        : base(settings)
+    { }
+
+
     public async Task<string> ListModelsAsync()
     {
         var client = GetAuthenticatedHttpClient();

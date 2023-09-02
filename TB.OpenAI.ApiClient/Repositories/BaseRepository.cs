@@ -4,21 +4,31 @@ namespace TB.OpenAI.ApiClient.Repositories;
 
 public abstract class BaseRepository
 {
+    private readonly OpenAiApiSettings _settings;
+
+    public BaseRepository(OpenAiApiSettings settings)
+    {
+        _settings = settings;
+    }
+
     protected HttpClient GetAuthenticatedHttpClient()
     {
         var httpClient = new HttpClient();
         
-        httpClient.DefaultRequestHeaders.Authorization = 
-            new AuthenticationHeaderValue("Bearer", OpenAiApiSettings.ApiKey);
+        if (!string.IsNullOrEmpty(_settings.ApiKey))
+        {
+            httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", _settings.ApiKey);
+        }
        
-        if (OpenAiApiSettings.OrganizationId != null) 
+        if (_settings.OrganizationId != null) 
         {
             httpClient.DefaultRequestHeaders.Add(
-                "OpenAI-Organization", 
-                OpenAiApiSettings.OrganizationId);
+                "OpenAI-Organization",
+                _settings.OrganizationId);
         }
 
-        httpClient.BaseAddress = new Uri(OpenAiApiSettings.BaseUrl);
+        httpClient.BaseAddress = new Uri(_settings.BaseUrl);
 
         return httpClient;
     }
