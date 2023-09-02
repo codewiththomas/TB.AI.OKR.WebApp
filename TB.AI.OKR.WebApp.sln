@@ -15,11 +15,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.OpenAI.ApiClient.Abstrac
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GPT4All", "GPT4All", "{F3972336-FC93-44B8-96D3-CDAC59514F0A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.GPT4All.ApiClient", "TB.GPT4All.ApiClient\TB.GPT4All.ApiClient.csproj", "{98E75CF1-ED70-48F0-ADA8-9CD2E6DAFC62}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.GPT4All.ApiClient", "TB.GPT4All.ApiClient\TB.GPT4All.ApiClient.csproj", "{98E75CF1-ED70-48F0-ADA8-9CD2E6DAFC62}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.GPT4All.ApiClient.DependencyInjection", "TB.GPT4All.ApiClient.DependencyInjection\TB.GPT4All.ApiClient.DependencyInjection.csproj", "{F8A8AAFF-CD06-46AF-9EBC-3CBFC76BD7A3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.GPT4All.ApiClient.DependencyInjection", "TB.GPT4All.ApiClient.DependencyInjection\TB.GPT4All.ApiClient.DependencyInjection.csproj", "{F8A8AAFF-CD06-46AF-9EBC-3CBFC76BD7A3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.GPT4All.ApiClient.Abstraction", "TB.GPT4All.ApiClient.Abstraction\TB.GPT4All.ApiClient.Abstraction.csproj", "{479CED10-800A-402E-ABD1-1E1C9584A4E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.GPT4All.ApiClient.Abstraction", "TB.GPT4All.ApiClient.Abstraction\TB.GPT4All.ApiClient.Abstraction.csproj", "{479CED10-800A-402E-ABD1-1E1C9584A4E7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
