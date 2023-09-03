@@ -1,6 +1,8 @@
 using TB.OpenAI.ApiClient;
 using TB.GPT4All.ApiClient;
 using TB.AI.OKR.WebApp.Persistence.Contexts;
+using Microsoft.Fast.Components.FluentUI;
+using TB.AI.OKR.WebApp.Persistence.Repositories;
 
 namespace TB.AI.OKR.WebApp;
 
@@ -21,7 +23,17 @@ public class Program
 
         /* Add persistence layer */
         builder.Services.AddDbContext<ApplicationDbContext>();
-        
+
+        /* Add Fluent UI */
+        builder.Services.AddHttpClient();
+        builder.Services.AddFluentUIComponents(options =>
+        {
+            options.HostingModel = BlazorHostingModel.Server;
+        });
+
+        /* Add persistence layer */
+        builder.Services.AddScoped<IOkrRuleRepository, OkrRuleRepository>();
+
         #endregion
 
         var app = builder.Build();

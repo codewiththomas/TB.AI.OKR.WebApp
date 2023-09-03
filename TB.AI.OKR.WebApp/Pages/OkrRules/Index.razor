@@ -1,0 +1,51 @@
+﻿@page "/okr-rules"
+@using TB.AI.OKR.WebApp.Persistence.Entities;
+@using TB.AI.OKR.WebApp.Persistence.Repositories;
+
+<h3>OKR rules</h3>
+
+@foreach (var scope in OkrRules.Select(x => x.Scope).Distinct().Order())
+{    
+    <h5>@scope</h5>
+    <ul>
+        @foreach (var okrRule in OkrRules.Where(x => x.Scope == scope).OrderBy(x => x.Severity))
+        {
+            <li>
+                <FluentSwitch 
+                    Value="okrRule.IsActive"
+                      ValueChanged="(bool newValue) => SwitchActiveState(okrRule.Id, newValue)">
+                </FluentSwitch> @okrRule.ToString()
+            </li>
+        }
+    </ul>
+}
+
+@code {
+
+    [Inject] private IOkrRuleRepository? OkrRuleRepository { get; set; }
+    [Inject] private IToastService? ToastService { get; set; }
+
+    public IEnumerable<OkrRule> OkrRules { get; set; } = new List<OkrRule>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        OkrRules = await OkrRuleRepository!.GetAllAsync();       
+        await base.OnInitializedAsync();
+    }
+
+
+    private async Task SwitchActiveState(int okrRuleId, bool newValue)
+    {
+        var result = await OkrRuleRepository!.UpdateActiveStatus(okrRuleId, newValue);
+
+        if (result)
+        {
+            ToastService!.ShowSuccess("Changes saved to database.");
+        }
+        else
+        {
+            ToastService!.ShowError("Error while saving to database.");
+        }
+    }
+
+}

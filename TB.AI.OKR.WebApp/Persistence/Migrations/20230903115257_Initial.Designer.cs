@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TB.AI.OKR.WebApp.Persistence.Contexts;
 
@@ -10,9 +11,11 @@ using TB.AI.OKR.WebApp.Persistence.Contexts;
 namespace TB.AI.OKR.WebApp.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230903115257_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.10");
@@ -97,8 +100,8 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         .HasMaxLength(4096)
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("Prompt")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("Scope")
                         .HasColumnType("INTEGER");
@@ -114,32 +117,28 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         new
                         {
                             Id = 19,
-                            Description = "have excactly one objective",
-                            IsActive = true,
+                            Description = "excactly one objective",
                             Scope = 1,
                             Severity = 2
                         },
                         new
                         {
                             Id = 20,
-                            Description = "have not more than 5 key results",
-                            IsActive = true,
+                            Description = "not more than 5 key results",
                             Scope = 1,
                             Severity = 1
                         },
                         new
                         {
                             Id = 21,
-                            Description = "have at least 1 key result",
-                            IsActive = true,
+                            Description = "at least 1 key result",
                             Scope = 1,
                             Severity = 2
                         },
                         new
                         {
                             Id = 22,
-                            Description = "have at least 3 key results",
-                            IsActive = true,
+                            Description = "at least 3 key results",
                             Scope = 1,
                             Severity = 1
                         },
@@ -147,7 +146,6 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 23,
                             Description = "can be abbreviated with O",
-                            IsActive = true,
                             Scope = 2,
                             Severity = 0
                         },
@@ -155,7 +153,6 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 24,
                             Description = "describes the \"What\"",
-                            IsActive = true,
                             Scope = 2,
                             Severity = 0
                         },
@@ -163,7 +160,6 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 25,
                             Description = "expresses goals or intends",
-                            IsActive = true,
                             Scope = 2,
                             Severity = 0
                         },
@@ -171,7 +167,6 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 26,
                             Description = "be aggressive, yet realistic",
-                            IsActive = true,
                             Scope = 2,
                             Severity = 1
                         },
@@ -179,7 +174,6 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 27,
                             Description = "be tangible, objective, and unambigous",
-                            IsActive = true,
                             Scope = 2,
                             Severity = 1
                         },
@@ -187,7 +181,6 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 28,
                             Description = "be obvious to a rational observer whether an objective has been achieved",
-                            IsActive = true,
                             Scope = 2,
                             Severity = 1
                         },
@@ -195,7 +188,6 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 29,
                             Description = "provide clear value to the company when successful achieved",
-                            IsActive = true,
                             Scope = 2,
                             Severity = 2
                         },
@@ -203,7 +195,6 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 30,
                             Description = "can be abbreviated with KR",
-                            IsActive = true,
                             Scope = 3,
                             Severity = 0
                         },
@@ -211,7 +202,6 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 31,
                             Description = "describes the \"How\"",
-                            IsActive = true,
                             Scope = 3,
                             Severity = 0
                         },
@@ -219,7 +209,6 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 32,
                             Description = "express measurable outcome",
-                            IsActive = true,
                             Scope = 3,
                             Severity = 0
                         },
@@ -227,7 +216,6 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 33,
                             Description = "express an outcome instead an output",
-                            IsActive = true,
                             Scope = 3,
                             Severity = 1
                         },
@@ -235,7 +223,6 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 34,
                             Description = "describe outcome, not activities (if words like consult, help, analyze, or participate are included, it describes activities)",
-                            IsActive = true,
                             Scope = 3,
                             Severity = 1
                         },
@@ -243,7 +230,6 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 35,
                             Description = "measurable and verifiable",
-                            IsActive = true,
                             Scope = 3,
                             Severity = 1
                         },
@@ -251,7 +237,6 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 36,
                             Description = "be difficult but not impossible to achieve",
-                            IsActive = true,
                             Scope = 3,
                             Severity = 1
                         });
