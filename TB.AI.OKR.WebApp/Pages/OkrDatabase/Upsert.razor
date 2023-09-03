@@ -1,5 +1,6 @@
 ﻿@page "/okr-database/add"
 @page "/okr-database/edit/{Id:int}"
+@using TB.AI.OKR.WebApp.Persistence.Entities;
 
 <h3>@PageTitle</h3>
 
@@ -17,20 +18,23 @@
         </FluentTextArea>
     }
 
+    <FluentButton Appearance="Appearance.Accent" OnClick="HandleSubmitButtonClickAsync">Save to database</FluentButton>
+
 </FluentStack>
 
 
 
 @code {
 
+    [Inject] private NavigationManager? NavigationManager { get; set; }
+    [Inject] private IOkrRepository? OkrRepository { get; set; }
+    [Inject] private IToastService? ToastService { get; set; }
+
     [Parameter]
     public int? Id { get; set; }
 
     public string? ObjectiveText { get; set; }
     public Dictionary<string, FormItem> KeyResults { get; set; } = new Dictionary<string, FormItem>();
-
-    public string? KR1 { get; set; }
-
 
     public string PageTitle { get => Id is null ? "Add OKR to database" : "Edit existing OKR"; }
 
@@ -49,5 +53,76 @@
             KeyResults.Add($"key-result-{(i + 1)}", new FormItem { Label = $"Key Result {(i + 1)}" });
         }
         await base.SetParametersAsync(parameters);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id != null && Id != 0)
+        {
+            var existingOkr = await OkrRepository!.GetByIdAsync(Id.Value);
+
+            if (existingOkr != null)
+            {
+                ObjectiveText = existingOkr.Objective;
+
+                var keyResultsArray = existingOkr.KeyResults.ToArray();
+                for (int i = 0; i < keyResultsArray.Length && i < KeyResults.Count(); i++)
+                {
+                    KeyResults[$"key-result-{(i + 1)}"].Value = keyResultsArray[i].Text;
+                }
+            }
+        }
+        await base.OnParametersSetAsync();
+    }
+
+
+    private async Task<bool> HandleSubmitButtonClickAsync()
+    {
+        if (Id is null || Id == 0)
+        {
+            return await AddOkrAsync();
+        }
+        return await UpdateOkrAsync();
+
+    }
+
+    private async Task<bool> AddOkrAsync()
+    {
+        var newKeyResults = new List<KeyResult>();
+
+        foreach (var keyResult in KeyResults)
+        {
+            if (keyResult.Value.Value == null)
+            {
+                continue;
+            }
+
+            var newKeyResult = new KeyResult
+            {
+                Text = keyResult!.Value!.Value!
+            };
+
+            newKeyResults.Add(newKeyResult);
+        }
+
+        var newOkr = new Okr
+        {
+            Objective = ObjectiveText ?? string.Empty,
+            KeyResults = newKeyResults
+        };
+
+        var savedOkr = await OkrRepository!.AddAsync(newOkr);
+        
+        NavigationManager!.NavigateTo("okr-database");
+        ToastService!.ShowSuccess("New OKR saved to database.");
+
+        return savedOkr.Id != 0;
+
+    }
+
+
+    private async Task<bool> UpdateOkrAsync()
+    {
+        throw new NotImplementedException();
     }
 }

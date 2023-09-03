@@ -1,10 +1,46 @@
 ﻿@page "/okr-database"
 @page "/okr-database/index"
+@using TB.AI.OKR.WebApp.Persistence.Entities;
 
 <h3>OKR sample database</h3>
 
+<FluentButton OnClick='() => NavigationManager!.NavigateTo("/okr-database/add")'>Add new OKR</FluentButton>
+
+@if (Okrs.Any())
+{
+    <FluentDataGrid Items="Okrs.AsQueryable()" ResizableColumns=true>
+        <PropertyColumn Property="@(x => x.Objective)" Sortable="true" Title="Objective" Class="multiline-text" />
+        <PropertyColumn Property="@(x => x.Language)" Sortable="true" Title="Language"/>
+
+        <TemplateColumn Title="Key results" Sortable="true">
+            @context.KeyResults.Count()
+        </TemplateColumn>
+
+        <TemplateColumn Title="Actions">
+            <FluentButton Appearance="Appearance.Accent" @onclick='@(() => NavigationManager!.NavigateTo("/okr-database/edit/" + @context.Id))'>Edit</FluentButton>
+        </TemplateColumn>
+    </FluentDataGrid>
+}
+else
+{
+    <div>Sample database is empty.</div>
+}
+
+
 @code {
 
+    [Inject] private NavigationManager? NavigationManager { get; set; }
+    [Inject] private IOkrRepository? OkrRepository { get; set; }
 
+    public IEnumerable<Okr> Okrs { get; set; } = new List<Okr>();
 
+    /// <summary>
+    /// Method gets invoked only with first render.
+    /// </summary>
+    /// <returns></returns>
+    protected override async Task OnInitializedAsync()
+    {
+        Okrs = await OkrRepository!.GetAllAsync();
+        await base.OnInitializedAsync();
+    }
 }

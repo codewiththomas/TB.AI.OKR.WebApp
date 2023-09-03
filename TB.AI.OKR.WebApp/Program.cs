@@ -33,6 +33,7 @@ public class Program
 
         /* Add persistence layer */
         builder.Services.AddScoped<IOkrRuleRepository, OkrRuleRepository>();
+        builder.Services.AddScoped<IOkrRepository, OkrRepository>();
 
         #endregion
 

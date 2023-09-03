@@ -11,8 +11,8 @@ using TB.AI.OKR.WebApp.Persistence.Contexts;
 namespace TB.AI.OKR.WebApp.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230903115257_Initial")]
-    partial class Initial
+    [Migration("20230903170620_RefactoredDb")]
+    partial class RefactoredDb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -20,17 +20,32 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.10");
 
+            modelBuilder.Entity("OkrReferenceSource", b =>
+                {
+                    b.Property<int>("OkrsId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ReferencesId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("OkrsId", "ReferencesId");
+
+                    b.HasIndex("ReferencesId");
+
+                    b.ToTable("OkrReferenceSource");
+                });
+
             modelBuilder.Entity("OkrRuleReferenceSource", b =>
                 {
                     b.Property<int>("OkrRulesId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("ReferenceSourcesId")
+                    b.Property<int>("ReferencesId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("OkrRulesId", "ReferenceSourcesId");
+                    b.HasKey("OkrRulesId", "ReferencesId");
 
-                    b.HasIndex("ReferenceSourcesId");
+                    b.HasIndex("ReferencesId");
 
                     b.ToTable("OkrRuleReferenceSource");
                 });
@@ -41,25 +56,21 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("ObjectiveId")
+                    b.Property<int?>("OkrId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ObjectiveId");
+                    b.HasIndex("OkrId");
 
                     b.ToTable("KeyResults");
                 });
 
-            modelBuilder.Entity("TB.AI.OKR.WebApp.Persistence.Entities.Objective", b =>
+            modelBuilder.Entity("TB.AI.OKR.WebApp.Persistence.Entities.Okr", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
 
                     b.Property<double>("IsArchievableRating")
                         .HasColumnType("REAL");
@@ -76,17 +87,13 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                     b.Property<double>("IsTimeBoundedRating")
                         .HasColumnType("REAL");
 
-                    b.Property<string>("Text")
+                    b.Property<string>("Objective")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Objectives");
-
-                    b.HasDiscriminator<string>("Discriminator").HasValue("Objective");
-
-                    b.UseTphMappingStrategy();
+                    b.ToTable("Okrs");
                 });
 
             modelBuilder.Entity("TB.AI.OKR.WebApp.Persistence.Entities.OkrRule", b =>
@@ -100,8 +107,8 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         .HasMaxLength(4096)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Prompt")
-                        .HasColumnType("TEXT");
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Scope")
                         .HasColumnType("INTEGER");
@@ -117,28 +124,32 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         new
                         {
                             Id = 19,
-                            Description = "excactly one objective",
+                            Description = "have excactly one objective",
+                            IsActive = true,
                             Scope = 1,
                             Severity = 2
                         },
                         new
                         {
                             Id = 20,
-                            Description = "not more than 5 key results",
+                            Description = "have not more than 5 key results",
+                            IsActive = true,
                             Scope = 1,
                             Severity = 1
                         },
                         new
                         {
                             Id = 21,
-                            Description = "at least 1 key result",
+                            Description = "have at least 1 key result",
+                            IsActive = true,
                             Scope = 1,
                             Severity = 2
                         },
                         new
                         {
                             Id = 22,
-                            Description = "at least 3 key results",
+                            Description = "have at least 3 key results",
+                            IsActive = true,
                             Scope = 1,
                             Severity = 1
                         },
@@ -146,6 +157,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 23,
                             Description = "can be abbreviated with O",
+                            IsActive = true,
                             Scope = 2,
                             Severity = 0
                         },
@@ -153,6 +165,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 24,
                             Description = "describes the \"What\"",
+                            IsActive = true,
                             Scope = 2,
                             Severity = 0
                         },
@@ -160,6 +173,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 25,
                             Description = "expresses goals or intends",
+                            IsActive = true,
                             Scope = 2,
                             Severity = 0
                         },
@@ -167,6 +181,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 26,
                             Description = "be aggressive, yet realistic",
+                            IsActive = true,
                             Scope = 2,
                             Severity = 1
                         },
@@ -174,6 +189,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 27,
                             Description = "be tangible, objective, and unambigous",
+                            IsActive = true,
                             Scope = 2,
                             Severity = 1
                         },
@@ -181,6 +197,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 28,
                             Description = "be obvious to a rational observer whether an objective has been achieved",
+                            IsActive = true,
                             Scope = 2,
                             Severity = 1
                         },
@@ -188,6 +205,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 29,
                             Description = "provide clear value to the company when successful achieved",
+                            IsActive = true,
                             Scope = 2,
                             Severity = 2
                         },
@@ -195,6 +213,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 30,
                             Description = "can be abbreviated with KR",
+                            IsActive = true,
                             Scope = 3,
                             Severity = 0
                         },
@@ -202,6 +221,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 31,
                             Description = "describes the \"How\"",
+                            IsActive = true,
                             Scope = 3,
                             Severity = 0
                         },
@@ -209,6 +229,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 32,
                             Description = "express measurable outcome",
+                            IsActive = true,
                             Scope = 3,
                             Severity = 0
                         },
@@ -216,6 +237,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 33,
                             Description = "express an outcome instead an output",
+                            IsActive = true,
                             Scope = 3,
                             Severity = 1
                         },
@@ -223,6 +245,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 34,
                             Description = "describe outcome, not activities (if words like consult, help, analyze, or participate are included, it describes activities)",
+                            IsActive = true,
                             Scope = 3,
                             Severity = 1
                         },
@@ -230,6 +253,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 35,
                             Description = "measurable and verifiable",
+                            IsActive = true,
                             Scope = 3,
                             Severity = 1
                         },
@@ -237,6 +261,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         {
                             Id = 36,
                             Description = "be difficult but not impossible to achieve",
+                            IsActive = true,
                             Scope = 3,
                             Severity = 1
                         });
@@ -248,28 +273,11 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Authors")
+                    b.Property<string>("ReferenceSymbol")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("DOI")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Publisher")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("ReferenceSourceType")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("SubTitle")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("URL")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Year")
+                    b.Property<string>("ReferenceText")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -290,6 +298,9 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("OkrId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Provider")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -300,25 +311,26 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                     b.Property<TimeSpan>("ReviewTime")
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("SampleOkrId")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("SampleOkrId");
+                    b.HasIndex("OkrId");
 
                     b.ToTable("Reviews");
                 });
 
-            modelBuilder.Entity("TB.AI.OKR.WebApp.Persistence.Entities.SampleOkr", b =>
+            modelBuilder.Entity("OkrReferenceSource", b =>
                 {
-                    b.HasBaseType("TB.AI.OKR.WebApp.Persistence.Entities.Objective");
+                    b.HasOne("TB.AI.OKR.WebApp.Persistence.Entities.Okr", null)
+                        .WithMany()
+                        .HasForeignKey("OkrsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Property<string>("Source")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasDiscriminator().HasValue("SampleOkr");
+                    b.HasOne("TB.AI.OKR.WebApp.Persistence.Entities.ReferenceSource", null)
+                        .WithMany()
+                        .HasForeignKey("ReferencesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("OkrRuleReferenceSource", b =>
@@ -331,32 +343,29 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
 
                     b.HasOne("TB.AI.OKR.WebApp.Persistence.Entities.ReferenceSource", null)
                         .WithMany()
-                        .HasForeignKey("ReferenceSourcesId")
+                        .HasForeignKey("ReferencesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
             modelBuilder.Entity("TB.AI.OKR.WebApp.Persistence.Entities.KeyResult", b =>
                 {
-                    b.HasOne("TB.AI.OKR.WebApp.Persistence.Entities.Objective", null)
+                    b.HasOne("TB.AI.OKR.WebApp.Persistence.Entities.Okr", null)
                         .WithMany("KeyResults")
-                        .HasForeignKey("ObjectiveId");
+                        .HasForeignKey("OkrId");
                 });
 
             modelBuilder.Entity("TB.AI.OKR.WebApp.Persistence.Entities.Review", b =>
                 {
-                    b.HasOne("TB.AI.OKR.WebApp.Persistence.Entities.SampleOkr", null)
+                    b.HasOne("TB.AI.OKR.WebApp.Persistence.Entities.Okr", null)
                         .WithMany("Reviews")
-                        .HasForeignKey("SampleOkrId");
+                        .HasForeignKey("OkrId");
                 });
 
-            modelBuilder.Entity("TB.AI.OKR.WebApp.Persistence.Entities.Objective", b =>
+            modelBuilder.Entity("TB.AI.OKR.WebApp.Persistence.Entities.Okr", b =>
                 {
                     b.Navigation("KeyResults");
-                });
 
-            modelBuilder.Entity("TB.AI.OKR.WebApp.Persistence.Entities.SampleOkr", b =>
-                {
                     b.Navigation("Reviews");
                 });
 #pragma warning restore 612, 618

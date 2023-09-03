@@ -2,9 +2,9 @@
 
 namespace TB.AI.OKR.WebApp.Persistence.Entities
 {
-    public class Objective : BaseEntity
+    public class Okr : BaseEntity
     {
-        public string Text { get; set; } = string.Empty;        
+        public string Objective { get; set; } = string.Empty;        
 
         [Range(0, 1)]
         public double IsSpecificRating { get; set; }
@@ -21,7 +21,16 @@ namespace TB.AI.OKR.WebApp.Persistence.Entities
         [Range(0,1)]
         public double IsTimeBoundedRating { get; set; }
 
+        public string Language { get; set; } = "en";
+
         public IEnumerable<KeyResult> KeyResults { get; set; }
             = new List<KeyResult>();
+
+        public IEnumerable<ReferenceSource> References { get; set; }
+            = new List<ReferenceSource>();
+
+        public IEnumerable<Review> Reviews { get; set; }
+            = new List<Review>();
+
     }
 }

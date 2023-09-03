@@ -14,7 +14,7 @@ public class OkrRule : BaseEntity
 
     public OkrRuleSeverities Severity { get; set; }
 
-    public IList<ReferenceSource> ReferenceSources { get; set; } = new List<ReferenceSource>();
+    public IList<ReferenceSource> References { get; set; } = new List<ReferenceSource>();
 
     /// <summary>
     /// Returns Description with severity as prefix. No prefix added when severity info.

@@ -17,17 +17,40 @@ public class OkrRepository : IOkrRepository
 
     private ApplicationDbContext ApplicationDbContext { get; }
 
+    public async Task<Okr> AddAsync(Okr okr)
+    {
+        if (okr.Id != 0)
+        {
+            throw new Exception("Please use update method for existing okr.");
+        }
+
+        await ApplicationDbContext.AddAsync(okr);
+        var result = await ApplicationDbContext.SaveChangesAsync();
+
+        return okr;
+    }
+
     /// <summary>
     /// Get a list of all OKR sets.
     /// </summary>
     /// <returns></returns>
-    public async Task<IEnumerable<Objective>> GetAllAsync()
+    public async Task<IEnumerable<Okr>> GetAllAsync()
     {
-        var okrs = await ApplicationDbContext.Objectives
+        var okrs = await ApplicationDbContext.Okrs
             .Include(kr => kr.KeyResults)
             .ToListAsync();
 
         return okrs;
+    }
+
+
+    public async Task<Okr?> GetByIdAsync(int id)
+    {
+        var okr = await ApplicationDbContext.Okrs
+            .Include(kr => kr.KeyResults)
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        return okr;
     }
 
 }

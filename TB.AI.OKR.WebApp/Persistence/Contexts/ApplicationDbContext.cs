@@ -8,10 +8,8 @@ namespace TB.AI.OKR.WebApp.Persistence.Contexts
     {
         #region DbSets
         public DbSet<KeyResult> KeyResults { get; set; }
-        public DbSet<Objective> Objectives { get; set; }
-        public DbSet<Review> Reviews { get; set; }
-        public DbSet<SampleOkr> SampleOkrs { get; set; }
-        
+        public DbSet<Okr> Okrs { get; set; }
+        public DbSet<Review> Reviews { get; set; }        
         public DbSet<OkrRule> OkrRules { get; set; }
 
         public DbSet<ReferenceSource> ReferenceSources { get; set; }
