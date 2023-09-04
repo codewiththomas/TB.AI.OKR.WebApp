@@ -1,6 +1,7 @@
 ﻿@page "/okr-database"
 @page "/okr-database/index"
 @using TB.AI.OKR.WebApp.Persistence.Entities;
+@using TB.AI.OKR.WebApp.Persistence.Repositories;
 
 <h3>OKR sample database</h3>
 
@@ -18,6 +19,7 @@
 
         <TemplateColumn Title="Actions">
             <FluentButton Appearance="Appearance.Accent" @onclick='@(() => NavigationManager!.NavigateTo("/okr-database/edit/" + @context.Id))'>Edit</FluentButton>
+            <FluentButton Appearance="Appearance.Accent" @onclick='@(() => NavigationManager!.NavigateTo("/okr-validation/" + @context.Id))'>Validate</FluentButton>
         </TemplateColumn>
     </FluentDataGrid>
 }

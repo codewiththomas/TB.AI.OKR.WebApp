@@ -1,6 +1,10 @@
 ﻿@page "/okr-database/add"
 @page "/okr-database/edit/{Id:int}"
+
+@using Microsoft.Fast.Components.FluentUI;
+@using TB.AI.OKR.WebApp.Helpers;
 @using TB.AI.OKR.WebApp.Persistence.Entities;
+@using TB.AI.OKR.WebApp.Persistence.Repositories;
 
 <h3>@PageTitle</h3>
 
@@ -17,6 +21,13 @@
             <span>@(string.IsNullOrWhiteSpace(KeyResults[localIndex].Label) ? localIndex : KeyResults[localIndex].Label)</span>
         </FluentTextArea>
     }
+    
+    <FluentLabel>Sprache</FluentLabel>
+    <FluentSelect TOption="string" @bind-Value="selectedLanguage">
+        <FluentIcon Icon="Icons.Regular.Size16.Globe" Color="@Color.Neutral" Slot="indicator" />
+        <FluentOption>de</FluentOption>
+        <FluentOption Selected="true">en</FluentOption>
+    </FluentSelect>
 
     <FluentButton Appearance="Appearance.Accent" OnClick="HandleSubmitButtonClickAsync">Save to database</FluentButton>
 
@@ -30,13 +41,14 @@
     [Inject] private IOkrRepository? OkrRepository { get; set; }
     [Inject] private IToastService? ToastService { get; set; }
 
-    [Parameter]
-    public int? Id { get; set; }
+    [Parameter] public int? Id { get; set; }
 
     public string? ObjectiveText { get; set; }
     public Dictionary<string, FormItem> KeyResults { get; set; } = new Dictionary<string, FormItem>();
 
     public string PageTitle { get => Id is null ? "Add OKR to database" : "Edit existing OKR"; }
+
+    private string? selectedLanguage = "en";
 
 
     /// <summary>
@@ -55,6 +67,12 @@
         await base.SetParametersAsync(parameters);
     }
 
+
+    /// <summary>
+    /// Runs every time the parameter Id is set. If Id is not null the OKR is loaded from the 
+    /// database and fills the form.
+    /// </summary>
+    /// <returns></returns>
     protected override async Task OnParametersSetAsync()
     {
         if (Id != null && Id != 0)
@@ -108,7 +126,8 @@
         var newOkr = new Okr
         {
             Objective = ObjectiveText ?? string.Empty,
-            KeyResults = newKeyResults
+            KeyResults = newKeyResults,
+            Language = selectedLanguage ?? "en"
         };
 
         var savedOkr = await OkrRepository!.AddAsync(newOkr);

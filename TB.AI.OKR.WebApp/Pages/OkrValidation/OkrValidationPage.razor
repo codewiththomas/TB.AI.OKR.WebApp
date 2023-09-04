@@ -1,5 +1,10 @@
 ﻿@page "/okr-validation"
+@page "/okr-validation/{Id:int}"
+
+@using Microsoft.Fast.Components.FluentUI
 @using TB.AI.OKR.WebApp.Dtos;
+@using TB.AI.OKR.WebApp.Persistence.Entities;
+@using TB.AI.OKR.WebApp.Persistence.Repositories;
 @using TB.OpenAI.ApiClient;
 @using TB.OpenAI.ApiClient.Contracts.Chat;
 
@@ -48,18 +53,18 @@
     </ul>
 }
 
-
 @code {
 
     [Inject] public IOpenAiApiClient? OpenAiApiClient { get; set; }
+    [Inject] private IOkrRepository? OkrRepository { get; set; }
+
+    [Parameter] public int? Id { get; set; }
 
     public OkrSetDto OkrSetDto { get; set; } = new();
 
     public string Prompt { get; set; } = string.Empty;
     public string Answer { get; set; } = string.Empty;
-    public IEnumerable<string> DebugInfos { get; set; } = new List<string>();
-
-    private readonly IDictionary<string, string> Placeholders = new Dictionary<string, string>();
+    public IEnumerable<string> DebugInfos { get; set; } = new List<string>();   
 
     private readonly IEnumerable<string> Instructions = new List<string>
     {
@@ -90,11 +95,44 @@
         "Provide the answer as JSON in the format { \"rating\" : RATING, \"hints\" : [{\"hint\": HINT, \"example\": EXAMPLE}] } where RATING is the number you provided and " +
         "HINTS is an array of hints how the OKR set could be improved. If possible provide an example to each hint, how it could look in a correct way, " +
         "but stay to the content of the OKR set and do not make up new things.",
-    
+
         "Your answer must be in German."
     };
+    private readonly IDictionary<string, string> Placeholders = new Dictionary<string, string>();
 
 
+    /// <summary>
+    /// Gets called before every render of the component, as soon as the parameters (Id) is set.
+    /// </summary>
+    /// <returns></returns>
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id.HasValue)
+        {
+            var okr = await OkrRepository!.GetByIdAsync(Id.Value);
+
+            if (okr is not null)
+            {
+                OkrSetDto.Objective = okr.Objective;
+
+                var keyResults = okr.KeyResults != null ? okr.KeyResults.ToArray() : new KeyResult[0];
+                OkrSetDto.KR1 = keyResults.Length > 0 ? keyResults[0].Text : string.Empty;
+                OkrSetDto.KR2 = keyResults.Length > 1 ? keyResults[1].Text : string.Empty;
+                OkrSetDto.KR3 = keyResults.Length > 2 ? keyResults[2].Text : string.Empty;
+                OkrSetDto.KR4 = keyResults.Length > 3 ? keyResults[3].Text : string.Empty;
+                OkrSetDto.KR5 = keyResults.Length > 4 ? keyResults[4].Text : string.Empty;
+            }
+        }
+        await base.OnParametersSetAsync();
+    }
+
+
+    /// <summary>
+    /// Injects the values of the placeholders into the instruction set.
+    /// </summary>
+    /// <param name="instructions"></param>
+    /// <param name="placeholders"></param>
+    /// <returns></returns>
     private IEnumerable<string> GetInstructionSetWithPlaceholders(IEnumerable<string> instructions, IDictionary<string, string> placeholders)
     {
         var prompt = new List<string>();
@@ -113,10 +151,19 @@
     }
 
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="instructions"></param>
+    /// <returns></returns>
     private string BuildPrompt(IEnumerable<string> instructions)
         => string.Join("\n ", instructions);
 
 
+    /// <summary>
+    /// Gets invoked as soon as the submit button is clicked. Sends a request to the AI API and displays the answer.
+    /// </summary>
+    /// <returns></returns>
     private async Task HandleSubmitButtonClick()
     {
         Answer = string.Empty;
