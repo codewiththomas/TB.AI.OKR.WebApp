@@ -23,6 +23,8 @@ namespace TB.AI.OKR.WebApp.Persistence.Entities
 
         public string Language { get; set; } = "en";
 
+        public bool IsCompleteSet { get; set; } = true;
+
         public IEnumerable<KeyResult> KeyResults { get; set; }
             = new List<KeyResult>();
 

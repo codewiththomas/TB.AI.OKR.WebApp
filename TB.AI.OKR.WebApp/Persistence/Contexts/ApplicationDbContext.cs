@@ -21,7 +21,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Contexts
         public ApplicationDbContext()
         {
             //DbPath = "../../../Persistence/Database/sample-okrs.db";
-            DbPath = "C:/FOM/Repos/TB.AI.OKR.WebApp/TB.AI.OKR.WebApp/Persistence/Database/sample-okrs.db";
+            DbPath = "D:/FOM/Repos/TB.AI.OKR.WebApp/TB.AI.OKR.WebApp/Persistence/Database/sample-okrs.db";
         }
 
 

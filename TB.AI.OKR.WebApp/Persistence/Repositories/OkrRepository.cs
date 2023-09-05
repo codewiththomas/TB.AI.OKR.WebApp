@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TB.AI.OKR.WebApp.Dtos;
 using TB.AI.OKR.WebApp.Persistence.Contexts;
 using TB.AI.OKR.WebApp.Persistence.Entities;
 
@@ -53,4 +54,27 @@ public class OkrRepository : IOkrRepository
         return okr;
     }
 
+    public async Task<Okr?> UpdateAsync(UpdateOkrDto updateOkrDto)
+    {
+        if (updateOkrDto.Id == 0)
+        {
+            throw new Exception("No valid id (0) provided for update.");
+        }
+
+        var existingOkr = await ApplicationDbContext.Okrs
+            .FirstOrDefaultAsync(x => x.Id == updateOkrDto.Id);
+
+        if (existingOkr == null)
+        {
+            throw new Exception($"No okr found for id {updateOkrDto.Id}!");
+        }
+        
+        existingOkr.Language = updateOkrDto.Language ?? existingOkr.Language;
+        existingOkr.IsCompleteSet = updateOkrDto.IsCompleteSet ?? existingOkr.IsCompleteSet;
+        existingOkr.Objective = updateOkrDto.Objective ?? existingOkr.Objective;
+
+        await ApplicationDbContext.SaveChangesAsync();
+
+        return existingOkr;
+    }
 }
