@@ -33,9 +33,11 @@ public class OkrSetRepository : IOkrSetRepository
             /* add okr set */
             var newOkrSetEntity = new OkrSet
             {
+                AuthorsRating = addOkrSetDto.AuthorsRating,
+                Comment = addOkrSetDto.Comment,
                 Language = addOkrSetDto.Language,
                 Level = addOkrSetDto.Level,
-                Vision = addOkrSetDto.Vision
+                Vision = addOkrSetDto.Vision                
             };
             await ApplicationDbContext.AddAsync(newOkrSetEntity);
             var result = await ApplicationDbContext.SaveChangesAsync();

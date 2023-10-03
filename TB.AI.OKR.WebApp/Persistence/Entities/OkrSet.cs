@@ -5,11 +5,15 @@
         public IEnumerable<OkrSetElement> OkrSetElements { get; set; }
             = new List<OkrSetElement>();
 
+        public string? Comment { get; set; }
+
         public string Language { get; set; } = "en";
 
         public string? Level { get; set; }
 
         public string? Vision { get; set; }
+
+        public string? AuthorsRating { get; set; }
 
         public IEnumerable<ReferenceSource> References { get; set; }
             = new List<ReferenceSource>();

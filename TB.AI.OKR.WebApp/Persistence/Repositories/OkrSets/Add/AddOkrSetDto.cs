@@ -2,13 +2,18 @@
 
 public class AddOkrSetDto
 {
-    public string? Vision { get; set; }
+    public string? AuthorsRating { get; set; }
 
-    public string? Level { get; set; }
+    public string? Comment { get; set; }
 
     public string Language { get; set; } = "en";
 
+    public string? Level { get; set; }
+
     public string Objective { get; set; } = string.Empty;
+
+    public string? Vision { get; set; }
+    
 
     public IList<int> ReferenceSourceIds { get; set; }
         = new List<int>();

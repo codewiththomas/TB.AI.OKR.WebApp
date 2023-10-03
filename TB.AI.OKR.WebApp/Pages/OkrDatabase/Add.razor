@@ -35,13 +35,21 @@
     @for (int i = 0; i < KeyResults.Count; i++)
     {
         var localIndex = i;
-        <FluentTextArea Id="localIndex" @bind-Value="KeyResults[localIndex].Value" Cols="100" Rows="2" Resize="TextAreaResize.Both">
+        <FluentTextArea Id="localIndex" @bind-Value="KeyResults[localIndex].Value" Cols="75" Rows="2" Resize="TextAreaResize.Both">
             <span>Key Result @((localIndex + 1).ToString())</span>
         </FluentTextArea>
     }
-    
+
     <FluentButton Appearance="Appearance.Hypertext" OnClick="AddFieldForAdditionalKeyResult">+ I need more key results!</FluentButton>
-    
+
+    <FluentTextArea @bind-Value="Vision" Cols="100" Rows="2" Resize="TextAreaResize.Both">
+        <span>Vision/Mission (optional)</span>
+    </FluentTextArea>
+
+    <FluentTextArea @bind-Value="Comment" Cols="100" Rows="2" Resize="TextAreaResize.Both">
+        <span>Comment (optional)</span>
+    </FluentTextArea>
+
     <FluentButton Appearance="Appearance.Accent" OnClick="HandleSubmitButtonClickAsync">Save to database</FluentButton>
 
 </FluentStack>
@@ -70,6 +78,17 @@
         { new Option<string> { Value="individual", Text = "Individual" } }
     };
     private string? selectedLevel;
+
+    List<Option<string>> AuthorRatingOptions = new()
+    {
+        { new Option<string> { Value="", Text = "Unknown", Selected = true } },
+        { new Option<string> { Value="positive", Text = "Positive" } },
+        { new Option<string> { Value="negative", Text = "Negative" } }
+    };
+    private string? selectedAuthorRating;
+
+    private string Comment = string.Empty;
+    private string Vision = string.Empty;
 
     public List<FormItem> KeyResults { get; set; } = new();
 
@@ -105,10 +124,13 @@
 
         var newOkrSetDto = new AddOkrSetDto
             {
+                AuthorsRating = string.IsNullOrWhiteSpace(selectedAuthorRating) ? null : selectedAuthorRating,
+                Comment = Comment,
                 Objective = ObjectiveText,
                 Level = string.IsNullOrWhiteSpace(selectedLevel) ? null : selectedLevel,
                 Language = selectedLanguage ?? "en",
                 ReferenceSourceIds = SelectedReferences.Select(r => r.Id).ToList(),
+                Vision = Vision,
                 KeyResults = KeyResults
                     .Where(x => !string.IsNullOrWhiteSpace(x.Value))
                     .Select(x => x.Value!.ToString())
