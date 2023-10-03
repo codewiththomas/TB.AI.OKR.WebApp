@@ -4,21 +4,20 @@
 @using TB.AI.OKR.WebApp.Persistence.Entities;
 @using TB.AI.OKR.WebApp.Persistence.Repositories;
 
-<h3>OKR sample database</h3>
+<h3>OKR sample database (@OkrSets.Count() sets)</h3>
 
 <FluentButton OnClick='() => NavigationManager!.NavigateTo("/okr-database/add")'>Add new OKR</FluentButton>
 
 @if (OkrSets.Any())
 {
-    <FluentDataGrid Items="OkrSets.AsQueryable()" ResizableColumns=true>
+    <FluentDataGrid Items="OkrSets.AsQueryable()" GridTemplateColumns="0.2fr 1fr 0.2fr 0.2fr 0.2fr 0.2fr" ResizableColumns=true>
+        <PropertyColumn Property="@(x => x.Level ?? "n.a.")" Sortable="true" Title="Level" />
         <PropertyColumn Property="@(x => x.Objective)" Sortable="true" Title="Objective" Class="multiline-text" />
-        <PropertyColumn Property="@(x => x.Level ?? "n.a.")" Sortable="true" Title="Level"/>
-        <PropertyColumn Property="@(x => x.Language)" Sortable="true" Title="Language"/>
-
         <TemplateColumn Title="Key results" Sortable="true">
             @context.KeyResults.Count()
         </TemplateColumn>
-
+        <PropertyColumn Property="@(x => string.Join("; ", x.References.Select(r => r.ReferenceSymbol)))" Sortable="true" Title="Source" />
+        <PropertyColumn Property="@(x => x.Language)" Sortable="true" Title="Language"/>
         <TemplateColumn Title="Actions">
             @* <FluentButton Appearance="Appearance.Accent" @onclick='@(() => NavigationManager!.NavigateTo("/okr-database/edit/" + @context.Id))'>Edit</FluentButton> *@
             <FluentButton Appearance="Appearance.Accent" @onclick='@(() => NavigationManager!.NavigateTo("/okr-validation/" + @context.Id))'>Validate</FluentButton>
