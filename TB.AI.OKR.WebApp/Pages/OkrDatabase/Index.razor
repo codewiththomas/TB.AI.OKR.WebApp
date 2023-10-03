@@ -45,6 +45,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         OkrSets = await OkrRepository!.GetAllAsync();
+        OkrSets = OkrSets.OrderBy(x => x.Objective);
         await base.OnInitializedAsync();
     }
 }
