@@ -125,12 +125,12 @@
         var newOkrSetDto = new AddOkrSetDto
             {
                 AuthorsRating = string.IsNullOrWhiteSpace(selectedAuthorRating) ? null : selectedAuthorRating,
-                Comment = Comment,
+                Comment = string.IsNullOrWhiteSpace(Comment) ? null : Comment,
                 Objective = ObjectiveText,
                 Level = string.IsNullOrWhiteSpace(selectedLevel) ? null : selectedLevel,
                 Language = selectedLanguage ?? "en",
                 ReferenceSourceIds = SelectedReferences.Select(r => r.Id).ToList(),
-                Vision = Vision,
+                Vision = string.IsNullOrWhiteSpace(Vision) ? null : Vision,
                 KeyResults = KeyResults
                     .Where(x => !string.IsNullOrWhiteSpace(x.Value))
                     .Select(x => x.Value!.ToString())
