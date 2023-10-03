@@ -2,11 +2,15 @@
 @using TB.AI.OKR.WebApp.Persistence.Entities;
 @using TB.AI.OKR.WebApp.Persistence.Repositories;
 
-<h3>OKR rules</h3>
+<h3>OKR rules (@OkrRules.Count() rules; @OkrRules.Where(x => x.IsActive).Count() active)</h3>
+
+<FluentButton OnClick='() => NavigationManager!.NavigateTo("/okr-rules/add")'>Add new rule</FluentButton>
 
 @if (OkrRules.Any())
 {
-    <FluentDataGrid Items="OkrRules.OrderBy(x => x.Scope).ThenBy(x => x.Severity).AsQueryable()" ResizableColumns=true>
+    <FluentDataGrid Items="OkrRules.OrderBy(x => x.Scope).ThenBy(x => x.Severity).AsQueryable()" 
+        ResizableColumns=true
+                    GridTemplateColumns="0.1fr 0.1fr 1fr 0.2fr">
         <TemplateColumn Title="Active">
             <FluentSwitch 
                 Value="context.IsActive"
@@ -15,36 +19,18 @@
         </TemplateColumn>
         <PropertyColumn Property="@(x => x.Scope)" Sortable="true" Title="Scope" />
         <PropertyColumn Property="@(x => x.ToString())" Sortable="true" Title="Rule" />
-@*         <PropertyColumn Property="@(x => x.ReferenceText)" Sortable="true" Title="Text" Class="multiline-text" />
-        <PropertyColumn Property="@(x => x.CountOkrSets)" Sortable="true" Title="OKR count" />
-        <PropertyColumn Property="@(x => x.CountRules)" Sortable="true" Title="Rule count" />
         <TemplateColumn Title="Actions">
-            <FluentButton Appearance="Appearance.Accent" @onclick='@(() => NavigationManager!.NavigateTo("/references/edit/" + @context.Id))'>Edit</FluentButton>
-            <FluentButton Disabled="@(context.CountRules > 0 || context.CountOkrSets > 0)" Appearance="Appearance.Accent" @onclick="() => HandleDeleteButtonClickAsync(context.Id)">Delete</FluentButton>
-        </TemplateColumn> *@
+            
+        </TemplateColumn>
     </FluentDataGrid>
 }
 
-@* @foreach (var scope in OkrRules.Select(x => x.Scope).Distinct().Order())
-{    
-    <h5>@scope</h5>
-    <ul>
-        @foreach (var okrRule in OkrRules.Where(x => x.Scope == scope).OrderBy(x => x.Severity))
-        {
-            <li>
-                <FluentSwitch 
-                    Value="okrRule.IsActive"
-                      ValueChanged="(bool newValue) => SwitchActiveState(okrRule.Id, newValue)">
-                </FluentSwitch> @okrRule.ToString()
-            </li>
-        }
-    </ul>
-} *@
 
 @code {
 
     [Inject] private IOkrRuleRepository? OkrRuleRepository { get; set; }
     [Inject] private IToastService? ToastService { get; set; }
+    [Inject] private NavigationManager? NavigationManager { get; set; }
 
     public IEnumerable<OkrRule> OkrRules { get; set; } = new List<OkrRule>();
 
