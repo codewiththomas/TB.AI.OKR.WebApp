@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text;
 
 namespace TB.AI.OKR.WebApp.Persistence.Entities;
 
@@ -20,25 +21,53 @@ public class OkrRule : BaseEntity
 
     public IList<ReferenceSource> References { get; set; } = new List<ReferenceSource>();
 
+
     /// <summary>
     /// Returns Description with severity as prefix. No prefix added when severity info.
     /// </summary>
     /// <returns></returns>
     public override string ToString()
+        => ToString(true);
+
+
+    /// <summary>
+    /// Returns Description with severity as prefix. No prefix added when severity info.
+    /// </summary>
+    /// <param name="includeScope">Indicates whether the sentence should start with the Scope, like "An Objective.."</param>
+    /// <returns></returns>
+    public string ToString(bool includeScope)
     {
-        if (Severity == OkrRuleSeverities.Info)
+        var result = new StringBuilder();
+        
+        if (includeScope)
         {
-            return Description;
+            result.Append("A");
+
+            char firstLetterOfScope = Scope.ToString()[0];
+            string vowels = "aeiou";
+
+            if (vowels.Contains(firstLetterOfScope, StringComparison.OrdinalIgnoreCase))
+            {
+                result.Append("n");
+            }
+
+            result.Append(" " + Scope.ToString());
         }
 
         switch (Severity)
         {
+
             case OkrRuleSeverities.Should:
-                return "should " + Description;
+                result.Append(" should");
+                break;
             case OkrRuleSeverities.Must:
-                return "must " + Description;
+                result.Append(" must");
+                break;
+            case OkrRuleSeverities.Info:
             default:
-                return Description;
+                break;
         }
+
+        return result.Append(" " + Description).ToString();
     }
 }
