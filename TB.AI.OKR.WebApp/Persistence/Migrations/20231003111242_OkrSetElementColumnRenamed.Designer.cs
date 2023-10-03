@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TB.AI.OKR.WebApp.Persistence.Contexts;
 
@@ -10,9 +11,11 @@ using TB.AI.OKR.WebApp.Persistence.Contexts;
 namespace TB.AI.OKR.WebApp.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231003111242_OkrSetElementColumnRenamed")]
+    partial class OkrSetElementColumnRenamed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.11");
@@ -352,110 +355,6 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ReferenceSources");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            ReferenceSymbol = "Niven & Lamorte, 2016",
-                            ReferenceText = "Niven, P. R., Lamorte, B. (2016). Objectives and Key Results: Driving Focus, Alignment, and Engagement with OKRs. Wiley."
-                        },
-                        new
-                        {
-                            Id = 2,
-                            ReferenceSymbol = "Lamorte, 2022",
-                            ReferenceText = "Lamorte, B. (2022). The OKRs Fiel Book. Wiley."
-                        },
-                        new
-                        {
-                            Id = 3,
-                            ReferenceSymbol = "Mello, 2019",
-                            ReferenceText = "Mello, F. S. H. (2019). OKRs: From Mission to Metrics. Qulture."
-                        },
-                        new
-                        {
-                            Id = 4,
-                            ReferenceSymbol = "Doerr, 2018",
-                            ReferenceText = "Doerr, J. (2018). Measure What Matters. Penguin."
-                        },
-                        new
-                        {
-                            Id = 5,
-                            ReferenceSymbol = "Wodtke, 2021",
-                            ReferenceText = "Wodtke, C. (2021). Radical Focus. Second Edition. Cucina Media."
-                        },
-                        new
-                        {
-                            Id = 6,
-                            ReferenceSymbol = "Hellesoe & Mewes, 2020",
-                            ReferenceText = "Hellesoe, N., Mewes, S. (2020). OKRs at the Center. Sense & Respond Press."
-                        },
-                        new
-                        {
-                            Id = 7,
-                            ReferenceSymbol = "Lobacher & Jacob (2020)",
-                            ReferenceText = "Lobacher, P., Jacob, C. (2020). Objectives & Key Results: Das agile Betriebssystem für moderne Organisationen. die.agilen."
-                        },
-                        new
-                        {
-                            Id = 8,
-                            ReferenceSymbol = "Kudernatsch, 2021",
-                            ReferenceText = "Kudernatsch, D. (2021). Objectives and Key Results: Die Grundlagen der agilen Managementmethode OKR. Haufe."
-                        },
-                        new
-                        {
-                            Id = 9,
-                            ReferenceSymbol = "Lange, 2022",
-                            ReferenceText = "Lange, C. (2022). OKR in der Praxis. Business Village."
-                        },
-                        new
-                        {
-                            Id = 10,
-                            ReferenceSymbol = "Kudernatsch, 2021",
-                            ReferenceText = "Kudernatsch, D. (2021). Objectives and Key Results: Die Grundlagen der agilen Managementmethode OKR. Haufe."
-                        },
-                        new
-                        {
-                            Id = 11,
-                            ReferenceSymbol = "Obogeanu-Hempel & Steiner, 2023",
-                            ReferenceText = "Obogeanu-Hempel, E. M., Steiner, A. D. (2023). OKR - Objectives & Key Results. Gabal."
-                        },
-                        new
-                        {
-                            Id = 12,
-                            ReferenceSymbol = "Mooncamp, 2023",
-                            ReferenceText = "Mooncamp (2023). OKR Beispiele. https://mooncamp.com/de/okr-beispiele. Visited 03/10/2023."
-                        },
-                        new
-                        {
-                            Id = 13,
-                            ReferenceSymbol = "Adobe, 2022",
-                            ReferenceText = "Adobe Communications Team (2022). OKR Examples. https://business.adobe.com/blog/basics/okr-examples. Visited 03/10/2023."
-                        },
-                        new
-                        {
-                            Id = 14,
-                            ReferenceSymbol = "Quantive, 2023",
-                            ReferenceText = "Quantive (2023). 30+ Real OKR Examples for Different Teams. https://quantive.com/resources/articles/okr-examples. Visited 03/10/2023."
-                        },
-                        new
-                        {
-                            Id = 15,
-                            ReferenceSymbol = "Bahlinger, 2023",
-                            ReferenceText = "Bahlinger, M. (2023). OKR examples for different departments. https://www.workpath.com/magazine/okr-examples. WorkPath. Visited 06/09/2023."
-                        },
-                        new
-                        {
-                            Id = 16,
-                            ReferenceSymbol = "Golightly, 2023",
-                            ReferenceText = "Golightly, E. (2023). 60+ OKR Examples - How To Write Effective OKRs 2023. https://clickup.com/blog/okr-examples. ClickUp. Visited 03/10/2023."
-                        },
-                        new
-                        {
-                            Id = 17,
-                            ReferenceSymbol = "Hall, 2022",
-                            ReferenceText = "Hall, S. L. (2022). How to Write Effective OKRs - Plus Examples. https://lattice.com/library/how-to-write-effective-okrs-plus-examples. Lattice. Visited 03/10/2023."
-                        });
                 });
 
             modelBuilder.Entity("TB.AI.OKR.WebApp.Persistence.Entities.Review", b =>

@@ -1,0 +1,84 @@
+﻿@page "/references"
+@using TB.AI.OKR.WebApp.Persistence.Entities;
+
+<h3>Reference Sources</h3>
+
+<FluentButton OnClick='() => NavigationManager!.NavigateTo("/references/add")'>Add new reference source</FluentButton>
+
+@if (ReferenceSources.Any())
+{
+    <FluentDataGrid Items="ReferenceSources.AsQueryable()" ResizableColumns=true>
+        <PropertyColumn Property="@(x => x.ReferenceSymbol)" Sortable="true" Title="Symbol" />
+        <PropertyColumn Property="@(x => x.ReferenceText)" Sortable="true" Title="Text" Class="multiline-text" />
+        <PropertyColumn Property="@(x => x.CountOkrSets)" Sortable="true" Title="OKR count" />
+        <PropertyColumn Property="@(x => x.CountRules)" Sortable="true" Title="Rule count"  />
+        <TemplateColumn Title="Actions">
+            <FluentButton Appearance="Appearance.Accent" @onclick='@(() => NavigationManager!.NavigateTo("/references/edit/" + @context.Id))'>Edit</FluentButton>
+            <FluentButton Disabled="@(context.CountRules > 0 || context.CountOkrSets > 0)" Appearance="Appearance.Accent" @onclick="() => HandleDeleteButtonClickAsync(context.Id)">Delete</FluentButton>
+        </TemplateColumn>
+    </FluentDataGrid>
+}
+else
+{
+    <div>There are no references in database yet.</div>
+}
+
+@code {
+
+
+    [Inject] private IDialogService? DialogService { get; set; }
+    [Inject] private IToastService? ToastService { get; set; }
+    [Inject] private IReferenceSourceRepository? ReferenceSourceRepository { get; set; }
+    [Inject] private NavigationManager? NavigationManager { get; set; }
+
+    public IEnumerable<GetReferenceSourcesDto> ReferenceSources { get; set; } = new List<GetReferenceSourcesDto>();
+
+
+    /// <summary>
+    /// Method gets invoked only with first render.
+    /// </summary>
+    /// <returns></returns>
+    protected override async Task OnInitializedAsync()
+    {
+        ReferenceSources = await ReferenceSourceRepository!.GetAllAsync();
+        await base.OnInitializedAsync();
+    }
+
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    private async Task HandleDeleteButtonClickAsync(int id)
+    {
+        var confirmDialog = await DialogService!
+            .ShowConfirmationAsync("Delete reference source", "Are you sure you want to delete this reference source?");
+
+        var dialogResult = await confirmDialog.Result;
+
+        if (dialogResult.Cancelled || dialogResult.Data is null)
+        {
+            ToastService!.ShowInfo("Deletion request canceled.");
+            return;
+        }
+
+        try
+        {
+            var result = await ReferenceSourceRepository!.DeleteAsync(id);
+            if (result)
+            {
+                ReferenceSources = ReferenceSources.Where(x => x.Id != id);
+                ToastService!.ShowSuccess("Reference source deleted successfully.");
+            }
+            else
+            {
+                throw new Exception("There was an error while deleting reference source.");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService!.ShowError("Error deleting reference source: " + ex.Message);
+        }
+    }
+}

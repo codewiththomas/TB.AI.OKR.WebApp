@@ -1,0 +1,47 @@
+﻿@page "/references/add"
+
+<h3>Add</h3>
+
+<FluentStack Orientation="Orientation.Vertical">
+
+    <FluentTextArea @bind-Value="ReferenceSymbol" Cols="100" Rows="1" Resize="TextAreaResize.Both">
+        <span>Short symbol.</span>
+    </FluentTextArea>
+
+    <FluentTextArea @bind-Value="ReferenceText" Cols="100" Rows="3" Resize="TextAreaResize.Both">
+        <span>Citation text.</span>
+    </FluentTextArea>
+
+    <FluentButton Appearance="Appearance.Accent" OnClick="HandleSubmitButtonClickAsync">Save to database</FluentButton>
+
+</FluentStack>
+
+@code {
+
+    [Inject] private NavigationManager? NavigationManager { get; set; }
+    [Inject] private IReferenceSourceRepository? ReferenceSourceRepository { get; set; }
+    [Inject] private IToastService? ToastService { get; set; }
+
+    public string? ReferenceSymbol { get; set; }
+    public string? ReferenceText { get; set; }
+
+    private async Task HandleSubmitButtonClickAsync()
+    {
+        var referenceSource = new AddReferenceSourceDto
+        {
+            ReferenceSymbol = ReferenceSymbol ?? string.Empty,
+            ReferenceText = ReferenceText ?? string.Empty
+        };
+
+        try
+        {
+            var result = await ReferenceSourceRepository!.AddAsync(referenceSource);
+            ToastService!.ShowSuccess("Reference source added successfully.");
+            NavigationManager!.NavigateTo("/references");
+        }
+        catch (Exception ex)
+        {
+            ToastService!.ShowError("Error adding reference source: " + ex.Message);
+        }
+    }
+}

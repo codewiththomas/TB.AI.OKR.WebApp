@@ -1,4 +1,4 @@
-﻿@page "/okr-validation"
+﻿@* @page "/okr-validation"
 @page "/okr-validation/{Id:int}"
 
 @using Microsoft.Fast.Components.FluentUI
@@ -56,7 +56,7 @@
 @code {
 
     [Inject] public IOpenAiApiClient? OpenAiApiClient { get; set; }
-    [Inject] private IOkrRepository? OkrRepository { get; set; }
+    [Inject] private IOkrSetRepository? OkrRepository { get; set; }
 
     [Parameter] public int? Id { get; set; }
 
@@ -197,3 +197,4 @@
         StateHasChanged();
     }
 }
+ *@

@@ -7,8 +7,12 @@ namespace TB.AI.OKR.WebApp.Persistence.Contexts
     public class ApplicationDbContext : DbContext
     {
         #region DbSets
-        public DbSet<KeyResult> KeyResults { get; set; }
-        public DbSet<Okr> Okrs { get; set; }
+        public DbSet<Label<OkrSet>> OkrSetLabels { get; set; }
+        public DbSet<Label<OkrSetElement>> OkrSetElementLabels { get; set; }
+
+        public DbSet<OkrSet> OkrSets { get; set; }
+        public DbSet<OkrSetElement> OkrSetElements { get; set; }
+
         public DbSet<Review> Reviews { get; set; }        
         public DbSet<OkrRule> OkrRules { get; set; }
 
@@ -31,6 +35,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Contexts
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.SeedReferenceSources();
             modelBuilder.SeedRules();
 
             base.OnModelCreating(modelBuilder);

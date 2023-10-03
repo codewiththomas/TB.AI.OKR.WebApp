@@ -1,4 +1,4 @@
-﻿@page "/okr-database/add"
+﻿@* @page "/okr-database/add"
 @page "/okr-database/edit/{Id:int}"
 
 @using Microsoft.Fast.Components.FluentUI;
@@ -38,7 +38,7 @@
 @code {
 
     [Inject] private NavigationManager? NavigationManager { get; set; }
-    [Inject] private IOkrRepository? OkrRepository { get; set; }
+    [Inject] private IOkrSetRepository? OkrRepository { get; set; }
     [Inject] private IToastService? ToastService { get; set; }
 
     [Parameter] public int? Id { get; set; }
@@ -123,7 +123,7 @@
             newKeyResults.Add(newKeyResult);
         }
 
-        var newOkr = new Okr
+        var newOkr = new OkrSet
         {
             Objective = ObjectiveText ?? string.Empty,
             KeyResults = newKeyResults,
@@ -145,3 +145,4 @@
         throw new NotImplementedException();
     }
 }
+ *@

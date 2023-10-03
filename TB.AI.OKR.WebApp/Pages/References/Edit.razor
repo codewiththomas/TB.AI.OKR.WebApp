@@ -1,0 +1,78 @@
+﻿@page "/references/edit/{Id:int}"
+
+<h3>Add</h3>
+
+<FluentStack Orientation="Orientation.Vertical">
+
+    <FluentTextArea @bind-Value="ReferenceSymbol" Cols="100" Rows="1" Resize="TextAreaResize.Both">
+        <span>Short symbol.</span>
+    </FluentTextArea>
+
+    <FluentTextArea @bind-Value="ReferenceText" Cols="100" Rows="3" Resize="TextAreaResize.Both">
+        <span>Citation text.</span>
+    </FluentTextArea>
+
+    <FluentButton Appearance="Appearance.Accent" OnClick="HandleSubmitButtonClickAsync">Save to database</FluentButton>
+
+</FluentStack>
+
+@code {
+
+    [Inject] private NavigationManager? NavigationManager { get; set; }
+    [Inject] private IReferenceSourceRepository? ReferenceSourceRepository { get; set; }
+    [Inject] private IToastService? ToastService { get; set; }
+
+    [Parameter] public int? Id { get; set; }
+
+    public string? ReferenceSymbol { get; set; }
+    public string? ReferenceText { get; set; }
+
+
+    /// <summary>
+    /// Method gets invoked when parameter Id is set.
+    /// </summary>
+    /// <returns></returns>
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id is null || Id == 0)
+        {
+            ToastService!.ShowError("Can't edit. No Id provided!");
+            NavigationManager!.NavigateTo("/references");
+        }
+
+        var existingReference = await ReferenceSourceRepository!.GetByIdAsync(Id!.Value);
+
+        if (existingReference is null)
+        {
+            ToastService!.ShowError("Can't edit. Reference source not found!");
+            NavigationManager!.NavigateTo("/references");
+        }
+
+        ReferenceSymbol = existingReference!.ReferenceSymbol;
+        ReferenceText = existingReference!.ReferenceText;
+
+        await base.OnParametersSetAsync();
+    }
+
+
+    private async Task HandleSubmitButtonClickAsync()
+    {
+        var referenceSource = new UpdateReferenceSourceDto
+            {
+                Id = Id!.Value,
+                ReferenceSymbol = ReferenceSymbol ?? string.Empty,
+                ReferenceText = ReferenceText ?? string.Empty
+            };
+
+        try
+        {
+            var result = await ReferenceSourceRepository!.UpdateAsync(referenceSource);
+            ToastService!.ShowSuccess("Reference source updated successfully.");
+            NavigationManager!.NavigateTo("/references");
+        }
+        catch (Exception ex)
+        {
+            ToastService!.ShowError("Error while updating reference source: " + ex.Message);
+        }
+    }
+}

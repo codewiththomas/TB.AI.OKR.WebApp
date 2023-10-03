@@ -1,0 +1,154 @@
+﻿@page "/okr-database/add"
+
+<h3>Add an OKR set</h3>
+
+<FluentStack Orientation="Orientation.Vertical">
+
+    <FluentLabel>Select reference(s) [OPTIONAL]</FluentLabel>
+    <FluentAutocomplete Id="references-autocomplete"
+                        TOption="GetReferenceSourcesDto"
+                        Placeholder="Select References"
+                        OnOptionsSearch="@OnSearchAsync"
+                        OptionText="@(x => x.ReferenceSymbol)"
+                        Width="600"
+                        @bind-SelectedOptions="@SelectedReferences" />
+    <p>Reference must be added to database before. Alternativly this field can be left blank.</p>
+
+    <FluentLabel>Language</FluentLabel>
+    <FluentSelect Items="@LanguageOptions"
+                  OptionText="@(x => x.Text)"
+                  OptionValue="@(x => x.Value)"
+                  OptionSelected="@(x => x.Selected)"
+    @bind-Value="@selectedLanguage" />
+
+    <FluentLabel>Level</FluentLabel>
+    <FluentSelect Items="@LevelOptions"
+                  OptionText="@(x => x.Text)"
+                  OptionValue="@(x => x.Value)"
+                  OptionSelected="@(x => x.Selected)"
+    @bind-Value="@selectedLevel" />
+
+    <FluentTextArea @bind-Value="ObjectiveText" Cols="100" Rows="3" Resize="TextAreaResize.Both">
+        <span>Objective</span>
+    </FluentTextArea>
+
+    @for (int i = 0; i < KeyResults.Count; i++)
+    {
+        var localIndex = i;
+        <FluentTextArea Id="localIndex" @bind-Value="KeyResults[localIndex].Value" Cols="100" Rows="2" Resize="TextAreaResize.Both">
+            <span>Key Result @((localIndex + 1).ToString())</span>
+        </FluentTextArea>
+    }
+
+
+
+@*     <FluentSelect @bind-Value="@selectedLanguage">
+        <FluentIcon Icon="Icons.Regular.Size16.Globe" Color="@Color.Neutral" />
+    </FluentSelect> *@
+
+    
+    <FluentButton Appearance="Appearance.Hypertext" OnClick="AddFieldForAdditionalKeyResult">+ I need more key results!</FluentButton>
+    
+    <FluentButton Appearance="Appearance.Accent" OnClick="HandleSubmitButtonClickAsync">Save to database</FluentButton>
+
+</FluentStack>
+
+
+@code {
+    [Inject] private NavigationManager? NavigationManager { get; set; }
+    [Inject] private IOkrSetRepository? OkrRepository { get; set; }
+    [Inject] private IReferenceSourceRepository? ReferenceSourceRepository { get; set; }
+    [Inject] private IToastService? ToastService { get; set; }
+
+    public string? ObjectiveText { get; set; }
+
+    List<Option<string>> LanguageOptions = new ()
+    {
+        { new Option<string> { Value="en", Text = "en", Selected = true } },
+        { new Option<string> { Value="de", Text = "de" } }
+    };
+    private string? selectedLanguage;
+
+    List<Option<string>> LevelOptions = new()
+    {
+        { new Option<string> { Value="", Text = "Unknown", Selected = true } },
+        { new Option<string> { Value="company", Text = "Company" } },
+        { new Option<string> { Value="department", Text = "Department" } },
+        { new Option<string> { Value="personal", Text = "Personal" } }
+    };
+    private string? selectedLevel;
+
+    public List<FormItem> KeyResults { get; set; } = new();
+
+    private IEnumerable<GetReferenceSourcesDto> AvailableReferences { get; set; } = new List<GetReferenceSourcesDto>();
+    private IEnumerable<GetReferenceSourcesDto> SelectedReferences = new List<GetReferenceSourcesDto>();
+
+    /// <summary>
+    /// Method gets invoked only with first render.
+    /// </summary>
+    /// <returns></returns>
+    protected override async Task OnInitializedAsync()
+    {
+        AvailableReferences = await ReferenceSourceRepository!.GetAllAsync();
+        for (int i = 0; i < 3; i++)
+        {
+            KeyResults.Add(new FormItem { Label = $"Key Result {(i + 1)}" });
+        }
+        await base.OnInitializedAsync();
+    }
+
+
+    /// <summary>
+    /// Adds new OKR set to the database.
+    /// </summary>
+    /// <returns></returns>
+    private async Task HandleSubmitButtonClickAsync()
+    {
+        if (string.IsNullOrWhiteSpace(ObjectiveText) || ObjectiveText.Length < 3)
+        {
+            ToastService!.ShowError("Objective must be at least 3 characters long.");
+            return;
+        }
+
+        var newOkrSetDto = new AddOkrSetDto
+            {
+                Objective = ObjectiveText,
+                Level = string.IsNullOrWhiteSpace(selectedLevel) ? null : selectedLevel,
+                Language = selectedLanguage ?? "en",
+                ReferenceSourceIds = SelectedReferences.Select(r => r.Id).ToList(),
+                KeyResults = KeyResults
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Value))
+                    .Select(x => x.Value!.ToString())
+                    .ToList()
+            };
+
+        var newOkrSet = await OkrRepository!.AddAsync(newOkrSetDto);
+
+        NavigationManager!.NavigateTo("/okr-database");
+        ToastService!.ShowSuccess("OKR set added successfully.");
+    }
+
+
+    /// <summary>
+    /// Adds new form-field for additional key result to the page DOM.
+    /// </summary>
+    /// <returns></returns>
+    private async Task AddFieldForAdditionalKeyResult()
+    {
+        KeyResults.Add(new FormItem { Label = $"Key Result {KeyResults.Count + 1}" });
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+    /// <summary>
+    /// Helper method for reference search autocomplete.
+    /// </summary>
+    /// <param name="e"></param>
+    /// <returns></returns>
+    private async Task OnSearchAsync(OptionsSearchEventArgs<GetReferenceSourcesDto> e)
+    {
+        e.Items = AvailableReferences
+            .Where(i => i.ReferenceSymbol.StartsWith(e.Text, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(i => i.ReferenceSymbol);
+    }
+}

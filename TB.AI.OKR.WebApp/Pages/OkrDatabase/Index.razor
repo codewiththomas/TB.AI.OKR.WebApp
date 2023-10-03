@@ -1,5 +1,6 @@
 ﻿@page "/okr-database"
 @page "/okr-database/index"
+
 @using TB.AI.OKR.WebApp.Persistence.Entities;
 @using TB.AI.OKR.WebApp.Persistence.Repositories;
 
@@ -7,10 +8,11 @@
 
 <FluentButton OnClick='() => NavigationManager!.NavigateTo("/okr-database/add")'>Add new OKR</FluentButton>
 
-@if (Okrs.Any())
+@if (OkrSets.Any())
 {
-    <FluentDataGrid Items="Okrs.AsQueryable()" ResizableColumns=true>
+    <FluentDataGrid Items="OkrSets.AsQueryable()" ResizableColumns=true>
         <PropertyColumn Property="@(x => x.Objective)" Sortable="true" Title="Objective" Class="multiline-text" />
+        <PropertyColumn Property="@(x => x.Level ?? "n.a.")" Sortable="true" Title="Level"/>
         <PropertyColumn Property="@(x => x.Language)" Sortable="true" Title="Language"/>
 
         <TemplateColumn Title="Key results" Sortable="true">
@@ -18,7 +20,7 @@
         </TemplateColumn>
 
         <TemplateColumn Title="Actions">
-            <FluentButton Appearance="Appearance.Accent" @onclick='@(() => NavigationManager!.NavigateTo("/okr-database/edit/" + @context.Id))'>Edit</FluentButton>
+            @* <FluentButton Appearance="Appearance.Accent" @onclick='@(() => NavigationManager!.NavigateTo("/okr-database/edit/" + @context.Id))'>Edit</FluentButton> *@
             <FluentButton Appearance="Appearance.Accent" @onclick='@(() => NavigationManager!.NavigateTo("/okr-validation/" + @context.Id))'>Validate</FluentButton>
         </TemplateColumn>
     </FluentDataGrid>
@@ -32,9 +34,10 @@ else
 @code {
 
     [Inject] private NavigationManager? NavigationManager { get; set; }
-    [Inject] private IOkrRepository? OkrRepository { get; set; }
+    [Inject] private IOkrSetRepository? OkrRepository { get; set; }
+    [Inject] private IToastService? ToastService { get; set; }
 
-    public IEnumerable<Okr> Okrs { get; set; } = new List<Okr>();
+    public IEnumerable<GetOkrSetsDto> OkrSets { get; set; } = new List<GetOkrSetsDto>();
 
     /// <summary>
     /// Method gets invoked only with first render.
@@ -42,7 +45,7 @@ else
     /// <returns></returns>
     protected override async Task OnInitializedAsync()
     {
-        Okrs = await OkrRepository!.GetAllAsync();
+        OkrSets = await OkrRepository!.GetAllAsync();
         await base.OnInitializedAsync();
     }
 }

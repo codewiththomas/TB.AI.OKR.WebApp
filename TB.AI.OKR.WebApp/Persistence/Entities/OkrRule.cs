@@ -5,6 +5,10 @@ namespace TB.AI.OKR.WebApp.Persistence.Entities;
 public class OkrRule : BaseEntity
 {
     [Required]
+    [MaxLength(100)]
+    public string Title { get; set; } = string.Empty;
+
+    [Required]
     [MaxLength(4096)]
     public string Description { get; set; } = string.Empty;
 

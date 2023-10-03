@@ -9,7 +9,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Entities
 
         public string? ReferenceText { get; set; }
 
-        public IList<Okr>? Okrs { get; set; }
+        public IList<OkrSet>? OkrSets { get; set; }
 
         public IList<OkrRule>? OkrRules { get; set; }
     }

@@ -3,7 +3,7 @@ using TB.AI.OKR.WebApp.Persistence.Entities;
 
 namespace TB.AI.OKR.WebApp.Persistence.Seeds;
 
-public static class ApplicationDbContextSeeds
+public static class OkrRuleSeeds
 {
     private static int nextOkrRuleId = 1;
 
