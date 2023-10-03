@@ -2,6 +2,7 @@
 @page "/okr-database/edit/{Id:int}"
 
 @using Microsoft.Fast.Components.FluentUI;
+@using TB.AI.OKR.WebApp.Dtos;
 @using TB.AI.OKR.WebApp.Helpers;
 @using TB.AI.OKR.WebApp.Persistence.Entities;
 @using TB.AI.OKR.WebApp.Persistence.Repositories;
@@ -42,6 +43,7 @@
     [Inject] private IToastService? ToastService { get; set; }
 
     [Parameter] public int? Id { get; set; }
+    private Okr? ExistingOkr { get; set; }
 
     public string? ObjectiveText { get; set; }
     public Dictionary<string, FormItem> KeyResults { get; set; } = new Dictionary<string, FormItem>();
@@ -81,6 +83,8 @@
 
             if (existingOkr != null)
             {
+                ExistingOkr = existingOkr;
+
                 ObjectiveText = existingOkr.Objective;
 
                 var keyResultsArray = existingOkr.KeyResults.ToArray();
@@ -104,6 +108,11 @@
 
     }
 
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
     private async Task<bool> AddOkrAsync()
     {
         var newKeyResults = new List<KeyResult>();
@@ -131,7 +140,7 @@
         };
 
         var savedOkr = await OkrRepository!.AddAsync(newOkr);
-        
+
         NavigationManager!.NavigateTo("okr-database");
         ToastService!.ShowSuccess("New OKR saved to database.");
 
@@ -142,7 +151,25 @@
 
     private async Task<bool> UpdateOkrAsync()
     {
-        throw new NotImplementedException();
+        if (ExistingOkr is null)
+        {
+            return false;
+        }
+
+        var updateOkrDto = new UpdateOkrDto
+            {
+                Id = ExistingOkr.Id,
+                Language = selectedLanguage,
+                IsCompleteSet = ExistingOkr.IsCompleteSet,
+                Objective = string.IsNullOrWhiteSpace(ObjectiveText) ? null : ObjectiveText
+            };
+
+        await OkrRepository!.UpdateAsync(updateOkrDto);
+
+        NavigationManager!.NavigateTo("okr-database");
+        ToastService!.ShowSuccess("Changes saved to database.");
+
+        return true;
     }
 }
  *@
