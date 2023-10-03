@@ -4,7 +4,28 @@
 
 <h3>OKR rules</h3>
 
-@foreach (var scope in OkrRules.Select(x => x.Scope).Distinct().Order())
+@if (OkrRules.Any())
+{
+    <FluentDataGrid Items="OkrRules.OrderBy(x => x.Scope).ThenBy(x => x.Severity).AsQueryable()" ResizableColumns=true>
+        <TemplateColumn Title="Active">
+            <FluentSwitch 
+                Value="context.IsActive"
+                ValueChanged="(bool newValue) => SwitchActiveState(context.Id, newValue)">
+            </FluentSwitch>
+        </TemplateColumn>
+        <PropertyColumn Property="@(x => x.Scope)" Sortable="true" Title="Scope" />
+        <PropertyColumn Property="@(x => x.ToString())" Sortable="true" Title="Rule" />
+@*         <PropertyColumn Property="@(x => x.ReferenceText)" Sortable="true" Title="Text" Class="multiline-text" />
+        <PropertyColumn Property="@(x => x.CountOkrSets)" Sortable="true" Title="OKR count" />
+        <PropertyColumn Property="@(x => x.CountRules)" Sortable="true" Title="Rule count" />
+        <TemplateColumn Title="Actions">
+            <FluentButton Appearance="Appearance.Accent" @onclick='@(() => NavigationManager!.NavigateTo("/references/edit/" + @context.Id))'>Edit</FluentButton>
+            <FluentButton Disabled="@(context.CountRules > 0 || context.CountOkrSets > 0)" Appearance="Appearance.Accent" @onclick="() => HandleDeleteButtonClickAsync(context.Id)">Delete</FluentButton>
+        </TemplateColumn> *@
+    </FluentDataGrid>
+}
+
+@* @foreach (var scope in OkrRules.Select(x => x.Scope).Distinct().Order())
 {    
     <h5>@scope</h5>
     <ul>
@@ -18,7 +39,7 @@
             </li>
         }
     </ul>
-}
+} *@
 
 @code {
 
