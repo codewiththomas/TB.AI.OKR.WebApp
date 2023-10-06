@@ -1,4 +1,6 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Reflection.Metadata.Ecma335;
+using System.Text.Json.Serialization;
+using TB.OpenAI.ApiClient.Abstract.Contracts.Chat;
 
 namespace TB.OpenAI.ApiClient.Contracts.Chat;
 
@@ -19,6 +21,23 @@ public class CreateChatCompletionRequest
     [JsonPropertyName("messages")]
     public IList<CreateChatCompletionRequestMessage> Messages { get; set; } 
         = new List<CreateChatCompletionRequestMessage>();
+
+    /// <summary>
+    /// Controls how the model calls functions. "none" means the model will not call a function and 
+    /// instead generates a message. "auto" means the model can pick between generating a message 
+    /// or calling a function. Specifying a particular function via {"name": "my_function"} forces 
+    /// the model to call that function. "none" is the default when no functions are present. 
+    /// "auto" is the default if functions are present.
+    /// </summary>
+    [JsonPropertyName("function_call")]
+    public string FunctionCall { get; set; } = "none";
+
+    /// <summary>
+    /// A list of functions the model may generate JSON inputs for.
+    /// </summary>
+    [JsonPropertyName("functions")]
+    public IList<CreateChatCompletionRequestFunction> Functions { get; set; }
+        = new List<CreateChatCompletionRequestFunction>();
 
     /// <summary>
     /// The maximum number of tokens to generate in the completion. The token count of your prompt 
