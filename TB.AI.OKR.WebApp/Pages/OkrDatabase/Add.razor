@@ -14,19 +14,37 @@
                         @bind-SelectedOptions="@SelectedReferences" />
     <p>Reference must be added to database before. Alternativly this field can be left blank.</p>
 
-    <FluentLabel>Language</FluentLabel>
-    <FluentSelect Items="@LanguageOptions"
-                  OptionText="@(x => x.Text)"
-                  OptionValue="@(x => x.Value)"
-                  OptionSelected="@(x => x.Selected)"
-    @bind-Value="@selectedLanguage" />
+    <FluentStack Orientation="Orientation.Horizontal">
 
-    <FluentLabel>Level</FluentLabel>
-    <FluentSelect Items="@LevelOptions"
-                  OptionText="@(x => x.Text)"
-                  OptionValue="@(x => x.Value)"
-                  OptionSelected="@(x => x.Selected)"
-    @bind-Value="@selectedLevel" />
+        <FluentStack Orientation="Orientation.Vertical">
+            <FluentLabel>Language</FluentLabel>
+            <FluentSelect Items="@LanguageOptions"
+                          OptionText="@(x => x.Text)"
+                          OptionValue="@(x => x.Value)"
+                          OptionSelected="@(x => x.Selected)"
+            @bind-Value="@selectedLanguage" />
+        </FluentStack>
+
+        <FluentStack Orientation="Orientation.Vertical">
+            <FluentLabel>Level</FluentLabel>
+            <FluentSelect Items="@LevelOptions"
+                          OptionText="@(x => x.Text)"
+                          OptionValue="@(x => x.Value)"
+                          OptionSelected="@(x => x.Selected)"
+            @bind-Value="@selectedLevel" />
+        </FluentStack>
+
+        <FluentStack Orientation="Orientation.Vertical">
+            <FluentLabel>Rating of the author</FluentLabel>
+            <FluentSelect Items="@AuthorRatingOptions"
+                          OptionText="@(x => x.Text)"
+                          OptionValue="@(x => x.Value)"
+                          OptionSelected="@(x => x.Selected)"
+            @bind-Value="@selectedAuthorRating" />
+        </FluentStack>
+
+    </FluentStack>
+
 
     <FluentTextArea @bind-Value="ObjectiveText" Cols="100" Rows="3" Resize="TextAreaResize.Both">
         <span>Objective</span>
