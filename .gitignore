@@ -10,6 +10,10 @@
 *.userosscache
 *.sln.docstates
 
+# Temporary Database files
+Persistence/Database/*.db-shm
+Persistence/Database/*.db-wal
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
