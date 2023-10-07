@@ -13,7 +13,11 @@ public class Label<T> : BaseEntity
     public T? Entity { get; set; }
        
 
-    public string Title { get; set; }
+    public string LabelName { get; set; } = string.Empty;
 
-    public string Value { get; set; }
+    public string Value { get; set; } = string.Empty;
+
+    public string ValueType { get; set; } = "string";
+
+    public string? Comment { get; set; }
 }
