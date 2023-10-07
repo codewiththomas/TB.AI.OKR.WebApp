@@ -13,7 +13,7 @@ public class CreateChatCompletionRequest
     /// </summary>
     [JsonPropertyName("model")]
     [JsonRequired]
-    public string Model { get; set; } = "gpt-3.5-turbo";
+    public string Model { get; set; } = "gpt-3.5-turbo-0613";
 
     /// <summary>
     /// A list of messages comprising the conversation so far.
@@ -30,14 +30,14 @@ public class CreateChatCompletionRequest
     /// "auto" is the default if functions are present.
     /// </summary>
     [JsonPropertyName("function_call")]
-    public string FunctionCall { get; set; } = "none";
+    public object FunctionCall { get; set; } = "none";
 
     /// <summary>
     /// A list of functions the model may generate JSON inputs for.
     /// </summary>
     [JsonPropertyName("functions")]
-    public IList<CreateChatCompletionRequestFunction> Functions { get; set; }
-        = new List<CreateChatCompletionRequestFunction>();
+    public IList<FunctionDefinition> Functions { get; set; }
+        = new List<FunctionDefinition>();
 
     /// <summary>
     /// The maximum number of tokens to generate in the completion. The token count of your prompt 
@@ -45,4 +45,19 @@ public class CreateChatCompletionRequest
     /// </summary>
     [JsonPropertyName("max_tokens")]
     public int MaxTokens { get; set; } = 1024;
+
+    /// <summary>
+    /// How many chat completion choices to generate for each input message.
+    /// </summary>
+    [JsonPropertyName("n")]
+    public int NumberOfCompletionsToCreate { get; set; } = 1;
+
+
+    /// <summary>
+    /// What sampling temperature to use, between 0 and 2. Higher values like 0.8 will 
+    /// make the output more random, while lower values like 0.2 will make it more focused 
+    /// and deterministic. We generally recommend altering this or top_p but not both.
+    /// </summary>
+    [JsonPropertyName("temperature")]
+    public double? Temperature { get; set; } = 1;
 }

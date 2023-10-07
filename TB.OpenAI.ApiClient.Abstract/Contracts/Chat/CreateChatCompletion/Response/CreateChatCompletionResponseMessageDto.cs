@@ -17,4 +17,10 @@ public class CreateChatCompletionResponseMessageDto
     [JsonPropertyName("content")]
     public string? Content { get; set; }
 
+    /// <summary>
+    /// The contents of the function_call.
+    /// </summary>
+    [JsonPropertyName("function_call")]
+    public FunctionCall? FunctionCall { get; set; }
+
 }

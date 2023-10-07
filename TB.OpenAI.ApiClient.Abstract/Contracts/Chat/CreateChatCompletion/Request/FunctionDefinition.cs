@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace TB.OpenAI.ApiClient.Abstract.Contracts.Chat;
 
-public class CreateChatCompletionRequestFunction
+public class FunctionDefinition
 {
     /// <summary>
     /// A description of what the function does, used by the model to choose when and how to call the function.
@@ -26,7 +26,7 @@ public class CreateChatCompletionRequestFunction
     /// </summary>
     [JsonPropertyName("parameters")]
     [JsonRequired]
-    public string Parameters { get; set; } = string.Empty;
+    public object Parameters { get; set; } = string.Empty;
 
 
 }
