@@ -4,22 +4,45 @@
 
 <h3>OKR rules (@OkrRules.Count() rules; @OkrRules.Where(x => x.IsActive).Count() active)</h3>
 
-<FluentButton OnClick='() => NavigationManager!.NavigateTo("/okr-rules/add")'>Add new rule</FluentButton>
+<FluentStack Orientation="Orientation.Vertical">
+    <FluentButton OnClick='() => NavigationManager!.NavigateTo("/okr-rules/add")'>Add new rule</FluentButton>
+
+    <div class="pa-2"></div>
+
+    @* <FluentSwitch Value="ShowActiveOnly" ValueChanged="(bool newValue) => HandleShowActiveOnlyChanged(newValue)"> *@
+    <FluentSwitch @bind-Value="ShowActiveOnly">
+        Show active only
+    </FluentSwitch>
+</FluentStack>
+
 
 @if (OkrRules.Any())
 {
-    <FluentDataGrid Items="OkrRules.OrderBy(x => x.Scope).ThenBy(x => x.Severity).AsQueryable()" 
-        ResizableColumns=true
-                    GridTemplateColumns="0.1fr 0.1fr 1fr 0.2fr 0.2fr">
+    <FluentDataGrid Items="GetFilteredItems()"
+                    ResizableColumns=true
+                    GridTemplateColumns="0.1fr 0.1fr 0.2fr 0.1fr 1fr 0.2fr 0.2fr">
         <TemplateColumn Title="Active">
             <FluentSwitch 
                 Value="context.IsActive"
                 ValueChanged="(bool newValue) => SwitchActiveState(context.Id, newValue)">
             </FluentSwitch>
         </TemplateColumn>
+
+        <PropertyColumn Property="@(x => x.Id)" Sortable="true" Title="Id" />
+
         <PropertyColumn Property="@(x => x.Scope)" Sortable="true" Title="Scope" />
-        <PropertyColumn Property="@(x => x.ToString())" Sortable="true" Title="Rule" />
-        <PropertyColumn Property="@(x => string.Join("; ", x.References.Select(r => r.ReferenceSymbol)))" Sortable="true" Title="Source" />
+
+        <PropertyColumn Property="@(x => x.Severity)" Sortable="true" Title="Severity" />
+
+        <PropertyColumn Property="@(x => x.ToString())" Sortable="true" Title="Rule" Class="multiline-text">
+            <ColumnOptions>
+                <div class="search-box">
+                    <FluentSearch type="search" Autofocus=true @bind-Value=ruleFilter @oninput="HandleRuleFilter" AfterBindValue="HandleClearRuleFilter" Placeholder="Rule..." />
+                </div>
+            </ColumnOptions>
+        </PropertyColumn>
+
+        <PropertyColumn Property="@(x => string.Join("; ", x.References.Select(r => r.ReferenceSymbol)))" Sortable="true" Title="Source" Class="multiline-text" />
         <TemplateColumn Title="Actions">
             <FluentButton Appearance="Appearance.Accent" @onclick='@(() => NavigationManager!.NavigateTo("/okr-rules/edit/" + @context.Id))'>Edit</FluentButton>
         </TemplateColumn>
@@ -57,4 +80,40 @@
         }
     }
 
+    #region Filter IsActive
+
+    private bool ShowActiveOnly { get; set; }
+
+    #endregion
+
+
+    #region Filter Scope
+
+
+    private IQueryable<OkrRule>? GetFilteredItems()
+    {
+        return OkrRules?
+            .Where(x => x.ToString().Contains(ruleFilter, StringComparison.CurrentCultureIgnoreCase))
+            .Where(x => x.IsActive == true || !ShowActiveOnly)
+            .OrderBy(x => x.Scope).ThenBy(x => x.Severity)
+            .AsQueryable();
+    }
+
+    bool _clearItems = false;
+    string ruleFilter = string.Empty;
+
+    private void HandleClearRuleFilter(string? value)
+    {
+        ruleFilter = value ?? string.Empty;
+    }
+
+    private void HandleRuleFilter(ChangeEventArgs args)
+    {
+        if (args.Value is string value)
+        {
+            ruleFilter = value;
+        }
+    }
+
+    #endregion
 }
