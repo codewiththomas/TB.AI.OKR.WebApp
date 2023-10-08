@@ -81,7 +81,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Repositories
 
                 return newOkrRuleEntity;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 await transaction.RollbackAsync();
                 throw;
@@ -130,7 +130,10 @@ namespace TB.AI.OKR.WebApp.Persistence.Repositories
                         .Where(x => x.Id == addedReferenceId)
                         .FirstOrDefaultAsync();
 
-                    existingOkrRule.References.Add(reference);
+                    if (reference != null)
+                    {
+                        existingOkrRule.References.Add(reference);
+                    }
                 }
 
                 await ApplicationDbContext.SaveChangesAsync();
@@ -139,7 +142,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Repositories
 
                 return existingOkrRule;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 await transaction.RollbackAsync();
                 throw;
