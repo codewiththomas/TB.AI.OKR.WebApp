@@ -32,8 +32,4 @@
     <ProjectReference Include="..\TB.Tools.Readability\TB.Tools.Readability.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Persistence\Database\" />
-  </ItemGroup>
-
 </Project>
