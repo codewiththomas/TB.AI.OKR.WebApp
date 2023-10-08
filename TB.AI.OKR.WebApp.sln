@@ -27,13 +27,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.Tools.Readability", "TB.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.Tools.DataLabeler", "TB.Tools.DataLabeler\TB.Tools.DataLabeler.csproj", "{0C9FFA08-1A43-42CB-BB20-B56EF30A93DE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OkrML", "OkrML\OkrML.csproj", "{7562F376-CB7D-426B-B419-CA67ADDEFE14}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OkrML", "OkrML\OkrML.csproj", "{7562F376-CB7D-426B-B419-CA67ADDEFE14}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AIProviders", "AIProviders", "{E74F89B0-DD51-48DA-9C6E-F99F29E366D6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ML", "ML", "{8F8E1518-F14A-4006-9CDE-5D8CAD44C37A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataFlatener", "DataFlatener\DataFlatener.csproj", "{3153EAD6-7EE7-4D2E-90CE-A5119FE9887C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataFlatener", "DataFlatener\DataFlatener.csproj", "{3153EAD6-7EE7-4D2E-90CE-A5119FE9887C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

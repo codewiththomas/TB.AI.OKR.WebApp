@@ -1,12 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace TB.Tools.Readability
+namespace TB.Tools.Readability;
+
+public static class ServiceRegistration
 {
-    internal class ServiceRegistration
+    /// <summary>
+    /// Registers the readability service to the dependency injection container.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configuration"></param>
+    /// <returns></returns>
+    public static IServiceCollection AddReadabilityService(this IServiceCollection services)
     {
+        services.AddTransient<IReadabilityService, ReadabilityService>(options =>
+            new ReadabilityService()
+        );
+        return services;
     }
 }
