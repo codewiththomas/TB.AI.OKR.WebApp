@@ -19,7 +19,7 @@
         <PropertyColumn Property="@(x => string.Join("; ", x.References.Select(r => r.ReferenceSymbol)))" Sortable="true" Title="Source" />
         <PropertyColumn Property="@(x => x.Language)" Sortable="true" Title="Language"/>
         <TemplateColumn Title="Actions">
-            @* <FluentButton Appearance="Appearance.Accent" @onclick='@(() => NavigationManager!.NavigateTo("/okr-database/edit/" + @context.Id))'>Edit</FluentButton> *@
+            <FluentButton Appearance="Appearance.Accent" @onclick='@(() => NavigationManager!.NavigateTo("/okr-database/edit/" + @context.Id))'>Edit</FluentButton>
             <FluentButton Appearance="Appearance.Accent" @onclick='@(() => NavigationManager!.NavigateTo("/okr-validation/" + @context.Id))'>Validate</FluentButton>
         </TemplateColumn>
     </FluentDataGrid>

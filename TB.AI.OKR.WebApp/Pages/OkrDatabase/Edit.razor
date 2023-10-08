@@ -1,0 +1,223 @@
+﻿@page "/okr-database/edit/{Id:int}"
+
+<h3>Edit an OKR set</h3>
+
+<FluentStack Orientation="Orientation.Vertical">
+
+    <FluentLabel>Select reference(s) [OPTIONAL]</FluentLabel>
+    <FluentAutocomplete Id="references-autocomplete"
+                        TOption="GetReferenceSourcesDto"
+                        Placeholder="Select References"
+                        OnOptionsSearch="@OnSearchAsync"
+                        OptionText="@(x => x.ReferenceSymbol)"
+                        Width="600"
+    @bind-SelectedOptions="@SelectedReferences" />
+    <p>Reference must be added to database before. Alternativly this field can be left blank.</p>
+
+    <FluentStack Orientation="Orientation.Horizontal">
+
+        <FluentStack Orientation="Orientation.Vertical">
+            <FluentLabel>Language</FluentLabel>
+            <FluentSelect Items="@LanguageOptions"
+                          OptionText="@(x => x.Text)"
+                          OptionValue="@(x => x.Value)"
+                          OptionSelected="@(x => x.Selected)"
+            @bind-Value="@selectedLanguage" />
+        </FluentStack>
+
+        <FluentStack Orientation="Orientation.Vertical">
+            <FluentLabel>Level</FluentLabel>
+            <FluentSelect Items="@LevelOptions"
+                          OptionText="@(x => x.Text)"
+                          OptionValue="@(x => x.Value)"
+                          OptionSelected="@(x => x.Selected)"
+            @bind-Value="@selectedLevel" />
+        </FluentStack>
+
+        <FluentStack Orientation="Orientation.Vertical">
+            <FluentLabel>Rating of the author</FluentLabel>
+            <FluentSelect Items="@AuthorRatingOptions"
+                          OptionText="@(x => x.Text)"
+                          OptionValue="@(x => x.Value)"
+                          OptionSelected="@(x => x.Selected)"
+            @bind-Value="@selectedAuthorRating" />
+        </FluentStack>
+
+    </FluentStack>
+
+
+    <FluentTextArea @bind-Value="ObjectiveText" Cols="100" Rows="3" Resize="TextAreaResize.Both">
+        <span>Objective</span>
+    </FluentTextArea>
+
+    @for (int i = 0; i < KeyResults.Count; i++)
+    {
+        var localIndex = i;
+        <FluentTextArea Id="localIndex" @bind-Value="KeyResults[localIndex].Value" Cols="75" Rows="2" Resize="TextAreaResize.Both">
+            <span>Key Result @((localIndex + 1).ToString())</span>
+        </FluentTextArea>
+    }
+
+    <FluentButton Appearance="Appearance.Hypertext" OnClick="AddFieldForAdditionalKeyResult">+ I need more key results!</FluentButton>
+
+    <FluentTextArea @bind-Value="Vision" Cols="100" Rows="2" Resize="TextAreaResize.Both">
+        <span>Vision/Mission (optional)</span>
+    </FluentTextArea>
+
+    <FluentTextArea @bind-Value="Comment" Cols="100" Rows="2" Resize="TextAreaResize.Both">
+        <span>Comment (optional)</span>
+    </FluentTextArea>
+
+    <FluentButton Appearance="Appearance.Accent" OnClick="HandleSubmitButtonClickAsync">Save to database</FluentButton>
+
+</FluentStack>
+
+@code {
+
+    [Inject] private NavigationManager? NavigationManager { get; set; }
+    [Inject] private IOkrSetRepository? OkrRepository { get; set; }
+    [Inject] private IReferenceSourceRepository? ReferenceSourceRepository { get; set; }
+    [Inject] private IToastService? ToastService { get; set; }
+
+    [Parameter] public int Id { get; set; }
+
+    public string? ObjectiveText { get; set; }
+
+    List<Option<string>> LanguageOptions = new()
+    {
+        { new Option<string> { Value="en", Text = "en" } },
+        { new Option<string> { Value="de", Text = "de" } }
+    };
+    private string? selectedLanguage;
+
+    List<Option<string>> LevelOptions = new()
+    {
+        { new Option<string> { Value="", Text = "Unknown" } },
+        { new Option<string> { Value="company", Text = "Company" } },
+        { new Option<string> { Value="team", Text = "Team" } },
+        { new Option<string> { Value="individual", Text = "Individual" } }
+    };
+    private string? selectedLevel;
+
+    List<Option<string>> AuthorRatingOptions = new()
+    {
+        { new Option<string> { Value="", Text = "Unknown" } },
+        { new Option<string> { Value="positive", Text = "Positive" } },
+        { new Option<string> { Value="negative", Text = "Negative" } }
+    };
+    private string? selectedAuthorRating;
+
+    private string Comment = string.Empty;
+    private string Vision = string.Empty;
+
+    public List<FormItem> KeyResults { get; set; } = new();
+
+    private IEnumerable<GetReferenceSourcesDto> AvailableReferences { get; set; } = new List<GetReferenceSourcesDto>();
+    private IEnumerable<GetReferenceSourcesDto> SelectedReferences = new List<GetReferenceSourcesDto>();
+
+
+    /// <summary>
+    /// Method gets invoked only with first render.
+    /// </summary>
+    /// <returns></returns>
+    protected override async Task OnParametersSetAsync()
+    {
+        AvailableReferences = await ReferenceSourceRepository!.GetAllAsync();
+
+        var okrSet = await OkrRepository!.GetByIdAsync(Id);
+
+        if (okrSet is null)
+        {
+            ToastService!.ShowSuccess($"No OKR set to Id = {Id}.");
+            NavigationManager!.NavigateTo("/okr-database");            
+        }
+
+        var objective = okrSet.OkrSetElements
+            .Where(x => x.Type == "objective")
+            .FirstOrDefault();
+
+        if (objective is not null)
+        {
+            ObjectiveText = objective.Text;
+        }
+
+        selectedLanguage = okrSet.Language;
+
+        selectedLevel = okrSet.Level ?? "";
+
+        selectedAuthorRating = okrSet.AuthorsRating ?? "";
+
+        Comment = okrSet.Comment ?? string.Empty;
+
+        Vision = okrSet.Vision ?? string.Empty;
+
+        var keyResults = okrSet.OkrSetElements
+            .Where(x => x.Type == "keyresult")
+            .ToList();
+
+        for (int i = 0; i < keyResults.Count(); i++)
+        {
+            KeyResults.Add(new FormItem { Label = $"Key Result {(i + 1)}", Value = keyResults[i].Text });
+        }
+
+        await base.OnParametersSetAsync();
+    }
+
+
+    /// <summary>
+    /// Updates OKR set in the database.
+    /// </summary>
+    /// <returns></returns>
+    private async Task HandleSubmitButtonClickAsync()
+    {
+        if (string.IsNullOrWhiteSpace(ObjectiveText) || ObjectiveText.Length < 3)
+        {
+            ToastService!.ShowError("Objective must be at least 3 characters long.");
+            return;
+        }
+
+        // var newOkrSetDto = new AddOkrSetDto
+        //     {
+        //         AuthorsRating = string.IsNullOrWhiteSpace(selectedAuthorRating) ? null : selectedAuthorRating,
+        //         Comment = string.IsNullOrWhiteSpace(Comment) ? null : Comment,
+        //         Objective = ObjectiveText,
+        //         Level = string.IsNullOrWhiteSpace(selectedLevel) ? null : selectedLevel,
+        //         Language = selectedLanguage ?? "en",
+        //         ReferenceSourceIds = SelectedReferences.Select(r => r.Id).ToList(),
+        //         Vision = string.IsNullOrWhiteSpace(Vision) ? null : Vision,
+        //         KeyResults = KeyResults
+        //                 .Where(x => !string.IsNullOrWhiteSpace(x.Value))
+        //                 .Select(x => x.Value!.ToString())
+        //                 .ToList()
+        //     };
+
+        // var newOkrSet = await OkrRepository!.AddAsync(newOkrSetDto);
+
+        NavigationManager!.NavigateTo("/okr-database");
+        ToastService!.ShowSuccess("OKR set added successfully.");
+    }
+
+
+    /// <summary>
+    /// Adds new form-field for additional key result to the page DOM.
+    /// </summary>
+    /// <returns></returns>
+    private async Task AddFieldForAdditionalKeyResult()
+    {
+        KeyResults.Add(new FormItem { Label = $"Key Result {KeyResults.Count + 1}" });
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+    /// <summary>
+    /// Helper method for reference search autocomplete.
+    /// </summary>
+    /// <param name="e"></param>
+    /// <returns></returns>
+    private async Task OnSearchAsync(OptionsSearchEventArgs<GetReferenceSourcesDto> e)
+    {
+        e.Items = AvailableReferences
+            .Where(i => i.ReferenceSymbol.StartsWith(e.Text, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(i => i.ReferenceSymbol);
+    }
+}
