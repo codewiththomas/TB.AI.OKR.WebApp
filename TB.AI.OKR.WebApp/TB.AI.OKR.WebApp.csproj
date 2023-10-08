@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Persistence\Repositories\OkrSetElements\**" />
+    <Content Remove="Persistence\Repositories\OkrSetElements\**" />
+    <EmbeddedResource Remove="Persistence\Repositories\OkrSetElements\**" />
+    <None Remove="Persistence\Repositories\OkrSetElements\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.11">
       <PrivateAssets>all</PrivateAssets>
@@ -27,7 +34,6 @@
 
   <ItemGroup>
     <Folder Include="Persistence\Database\" />
-    <Folder Include="Persistence\Repositories\OkrSetElements\" />
   </ItemGroup>
 
 </Project>

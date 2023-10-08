@@ -1,8 +1,7 @@
-﻿@page "/okr-rules/add"
+﻿@page "/okr-rules/edit/{Id:int}"
 @using System.Text;
-@using TB.AI.OKR.WebApp.Persistence.Entities;
 
-<h3>Add an rule</h3>
+<h3>Edit</h3>
 
 <FluentStack Orientation="Orientation.Vertical">
 
@@ -13,7 +12,7 @@
                         OnOptionsSearch="@OnReferenceSearchAsync"
                         OptionText="@(x => x.ReferenceSymbol)"
                         Width="600"
-                        @bind-SelectedOptions="@SelectedReferences" />
+    @bind-SelectedOptions="@SelectedReferences" />
 
     <FluentStack Orientation="Orientation.Vertical">
         <FluentLabel>Scope</FluentLabel>
@@ -21,7 +20,7 @@
                       OptionText="@(x => x.Text)"
                       OptionValue="@(x => x.Value)"
                       OptionSelected="@(x => x.Selected)"
-                      @bind-Value="@selectedOkrRuleScope" />
+        @bind-Value="@selectedOkrRuleScope" />
     </FluentStack>
 
     <FluentStack Orientation="Orientation.Vertical">
@@ -40,7 +39,7 @@
     <FluentTextArea @bind-Value="OkrRuleText" Cols="100" Rows="2" Resize="TextAreaResize.Both">
         <span>Rule Text</span>
     </FluentTextArea>
-    
+
     <p>@GetOkrRuleString()</p>
 
     <FluentButton Appearance="Appearance.Accent" OnClick="HandleSubmitButtonClickAsync">Save to database</FluentButton>
@@ -48,17 +47,20 @@
 </FluentStack>
 
 @code {
+
     [Inject] private NavigationManager? NavigationManager { get; set; }
     [Inject] private IOkrRuleRepository? OkrRuleRepository { get; set; }
     [Inject] private IReferenceSourceRepository? ReferenceSourceRepository { get; set; }
     [Inject] private IToastService? ToastService { get; set; }
+
+    [Parameter] public int Id { get; set; }
 
     public string? OkrRuleTitle { get; set; }
     public string? OkrRuleText { get; set; }
 
     List<Option<string>> OkrRuleScopeOptions = new()
     {
-        { new Option<string> { Value=OkrRuleScopes.OkrSet.ToString(), Text = OkrRuleScopes.OkrSet.GetDescription(false), Selected = true } },
+        { new Option<string> { Value=OkrRuleScopes.OkrSet.ToString(), Text = OkrRuleScopes.OkrSet.GetDescription(false) } },
         { new Option<string> { Value=OkrRuleScopes.Objective.ToString(), Text = OkrRuleScopes.Objective.GetDescription(false) } },
         { new Option<string> { Value=OkrRuleScopes.KeyResult.ToString(), Text = OkrRuleScopes.KeyResult.GetDescription(false) } }
     };
@@ -66,7 +68,7 @@
 
     List<Option<string>> OkrRuleSeverityOptions = new()
     {
-        { new Option<string> { Value=OkrRuleSeverities.Info.ToString(), Text = OkrRuleSeverities.Info.GetDescription(false), Selected = true } },
+        { new Option<string> { Value=OkrRuleSeverities.Info.ToString(), Text = OkrRuleSeverities.Info.GetDescription(false) } },
         { new Option<string> { Value=OkrRuleSeverities.Should.ToString(), Text = OkrRuleSeverities.Should.GetDescription(false) } },
         { new Option<string> { Value=OkrRuleSeverities.Must.ToString(), Text = OkrRuleSeverities.Must.GetDescription(false) } }
     };
@@ -75,14 +77,35 @@
     private IEnumerable<GetReferenceSourcesDto> AvailableReferences { get; set; } = new List<GetReferenceSourcesDto>();
     private IEnumerable<GetReferenceSourcesDto> SelectedReferences = new List<GetReferenceSourcesDto>();
 
+
     /// <summary>
-    /// Method gets invoked only with first render.
+    /// Method gets invoked every time the parameters change.
     /// </summary>
     /// <returns></returns>
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         AvailableReferences = await ReferenceSourceRepository!.GetAllAsync();
-        await base.OnInitializedAsync();
+
+        var okrRule = await OkrRuleRepository!.GetAsync(Id);
+
+        if (okrRule is null)
+        {            
+            ToastService!.ShowError("OKR rule not found.");
+            NavigationManager!.NavigateTo("/okr-rules");
+            return;
+        }
+
+        OkrRuleTitle = okrRule!.Title;
+        OkrRuleText = okrRule.Description;
+        selectedOkrRuleSeverity = okrRule.Severity.ToString();
+        selectedOkrRuleScope = okrRule.Scope.ToString();
+
+        var selectedReferenceIds = okrRule.References.Select(r => r.Id);
+
+        SelectedReferences = AvailableReferences
+            .Where(x => selectedReferenceIds.Contains(x.Id));
+
+        await base.OnParametersSetAsync();
     }
 
 
@@ -104,16 +127,17 @@
             return;
         }
 
-        var newOkrRuleDto = new AddOkrRuleDto
-        {
-            OkrRuleTitle = OkrRuleTitle,
-            OkrRuleText = OkrRuleText,
-            Scope = ParseOkrRuleScope(selectedOkrRuleScope),
-            Severity = ParseOkrRuleSeverity(selectedOkrRuleSeverity),
-            ReferenceSourceIds = SelectedReferences.Select(x => x.Id).Distinct().ToList()
-        };
+        var updateOkrRuleDto = new UpdateOkrRuleDto
+            {
+                Id = Id,
+                OkrRuleTitle = OkrRuleTitle,
+                OkrRuleText = OkrRuleText,
+                Scope = ParseOkrRuleScope(selectedOkrRuleScope),
+                Severity = ParseOkrRuleSeverity(selectedOkrRuleSeverity),
+                ReferenceSourceIds = SelectedReferences.Select(x => x.Id).Distinct().ToList()
+            };
 
-        var newOkrRule = await OkrRuleRepository!.AddAsync(newOkrRuleDto);
+        var updatedOkrRule = await OkrRuleRepository!.UpdateAsync(updateOkrRuleDto);
 
         NavigationManager!.NavigateTo("/okr-rules");
         ToastService!.ShowSuccess("OKR rule added successfully.");
