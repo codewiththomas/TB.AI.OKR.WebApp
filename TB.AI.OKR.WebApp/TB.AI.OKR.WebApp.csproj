@@ -16,11 +16,13 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.11" />
     <PackageReference Include="Microsoft.Fast.Components.FluentUI" Version="3.1.1" />
     <PackageReference Include="Microsoft.Fast.Components.FluentUI.Icons" Version="3.1.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\TB.GPT4All.ApiClient.DependencyInjection\TB.GPT4All.ApiClient.DependencyInjection.csproj" />
     <ProjectReference Include="..\TB.OpenAI.ApiClient.DependencyInjection\TB.OpenAI.ApiClient.DependencyInjection.csproj" />
+    <ProjectReference Include="..\TB.Tools.Readability\TB.Tools.Readability.csproj" />
   </ItemGroup>
 
   <ItemGroup>
