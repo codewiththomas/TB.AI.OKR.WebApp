@@ -15,6 +15,7 @@ public class UpdateOkrSetDto
 
     public string? Vision { get; set; }
 
+    public bool UseForSampleDataset { get; set; }
 
     public IList<int> ReferenceSourceIds { get; set; }
         = new List<int>();

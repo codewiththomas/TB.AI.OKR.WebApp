@@ -13,7 +13,8 @@ public class AddOkrSetDto
     public string Objective { get; set; } = string.Empty;
 
     public string? Vision { get; set; }
-    
+
+    public bool UseForSampleDataset { get; set; } = true;
 
     public IList<int> ReferenceSourceIds { get; set; }
         = new List<int>();

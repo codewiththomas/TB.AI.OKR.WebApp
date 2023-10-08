@@ -15,6 +15,8 @@
 
         public string? AuthorsRating { get; set; }
 
+        public bool UseForSampleDataset { get; set; } = true;
+
         public IList<ReferenceSource> References { get; set; }
             = new List<ReferenceSource>();
 

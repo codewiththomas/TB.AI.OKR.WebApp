@@ -68,6 +68,10 @@
         <span>Comment (optional)</span>
     </FluentTextArea>
 
+    <FluentSwitch @bind-Value="UseForSampleDataset">
+        Use this OKR set for sample dataset
+    </FluentSwitch>
+
     <FluentButton Appearance="Appearance.Accent" OnClick="HandleSubmitButtonClickAsync">Save to database</FluentButton>
 
 </FluentStack>
@@ -114,6 +118,8 @@
 
     private IEnumerable<GetReferenceSourcesDto> AvailableReferences { get; set; } = new List<GetReferenceSourcesDto>();
     private IEnumerable<GetReferenceSourcesDto> SelectedReferences = new List<GetReferenceSourcesDto>();
+
+    private bool UseForSampleDataset { get; set; } = true;
 
 
     /// <summary>
@@ -164,6 +170,8 @@
 
         SelectedReferences = AvailableReferences.Where(x => selectedReferenceIds.Contains(x.Id));
 
+        UseForSampleDataset = okrSet.UseForSampleDataset;
+
         await base.OnParametersSetAsync();
     }
 
@@ -190,6 +198,7 @@
                 Language = selectedLanguage ?? "en",
                 ReferenceSourceIds = SelectedReferences.Select(r => r.Id).ToList(),
                 Vision = string.IsNullOrWhiteSpace(Vision) ? null : Vision,
+                UseForSampleDataset = UseForSampleDataset,
                 KeyResults = KeyResults
                         .Where(x => !string.IsNullOrWhiteSpace(x.Value))
                         .Select(x => x.Value!.ToString())

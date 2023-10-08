@@ -37,7 +37,8 @@ public class OkrSetRepository : IOkrSetRepository
                 Comment = addOkrSetDto.Comment,
                 Language = addOkrSetDto.Language,
                 Level = addOkrSetDto.Level,
-                Vision = addOkrSetDto.Vision                
+                Vision = addOkrSetDto.Vision,
+                UseForSampleDataset = addOkrSetDto.UseForSampleDataset
             };
             await ApplicationDbContext.AddAsync(newOkrSetEntity);
             var result = await ApplicationDbContext.SaveChangesAsync();
@@ -126,6 +127,7 @@ public class OkrSetRepository : IOkrSetRepository
             existingOkrSet.Language = updateOkrSetDto.Language;
             existingOkrSet.Level = string.IsNullOrWhiteSpace(updateOkrSetDto.Level) ? null : updateOkrSetDto.Level;
             existingOkrSet.Vision = string.IsNullOrWhiteSpace(updateOkrSetDto.Vision) ? null : updateOkrSetDto.Vision;
+            existingOkrSet.UseForSampleDataset = updateOkrSetDto.UseForSampleDataset;
 
             await ApplicationDbContext.SaveChangesAsync();
 
