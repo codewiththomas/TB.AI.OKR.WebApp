@@ -160,6 +160,10 @@
             KeyResults.Add(new FormItem { Label = $"Key Result {(i + 1)}", Value = keyResults[i].Text });
         }
 
+        var selectedReferenceIds = okrSet.References.Select(x => x.Id).ToList();
+
+        SelectedReferences = AvailableReferences.Where(x => selectedReferenceIds.Contains(x.Id));
+
         await base.OnParametersSetAsync();
     }
 
@@ -176,22 +180,23 @@
             return;
         }
 
-        // var newOkrSetDto = new AddOkrSetDto
-        //     {
-        //         AuthorsRating = string.IsNullOrWhiteSpace(selectedAuthorRating) ? null : selectedAuthorRating,
-        //         Comment = string.IsNullOrWhiteSpace(Comment) ? null : Comment,
-        //         Objective = ObjectiveText,
-        //         Level = string.IsNullOrWhiteSpace(selectedLevel) ? null : selectedLevel,
-        //         Language = selectedLanguage ?? "en",
-        //         ReferenceSourceIds = SelectedReferences.Select(r => r.Id).ToList(),
-        //         Vision = string.IsNullOrWhiteSpace(Vision) ? null : Vision,
-        //         KeyResults = KeyResults
-        //                 .Where(x => !string.IsNullOrWhiteSpace(x.Value))
-        //                 .Select(x => x.Value!.ToString())
-        //                 .ToList()
-        //     };
+        var updateOkrSetDto = new UpdateOkrSetDto
+            {
+                Id = Id,
+                AuthorsRating = string.IsNullOrWhiteSpace(selectedAuthorRating) ? null : selectedAuthorRating,
+                Comment = string.IsNullOrWhiteSpace(Comment) ? null : Comment,
+                Objective = ObjectiveText,
+                Level = string.IsNullOrWhiteSpace(selectedLevel) ? null : selectedLevel,
+                Language = selectedLanguage ?? "en",
+                ReferenceSourceIds = SelectedReferences.Select(r => r.Id).ToList(),
+                Vision = string.IsNullOrWhiteSpace(Vision) ? null : Vision,
+                KeyResults = KeyResults
+                        .Where(x => !string.IsNullOrWhiteSpace(x.Value))
+                        .Select(x => x.Value!.ToString())
+                        .ToList()
+            };
 
-        // var newOkrSet = await OkrRepository!.AddAsync(newOkrSetDto);
+        var updatedOkrSet = await OkrRepository!.UpdateAsync(updateOkrSetDto);
 
         NavigationManager!.NavigateTo("/okr-database");
         ToastService!.ShowSuccess("OKR set added successfully.");

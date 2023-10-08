@@ -2,7 +2,7 @@
 {
     public class OkrSet : BaseEntity
     {
-        public IEnumerable<OkrSetElement> OkrSetElements { get; set; }
+        public IList<OkrSetElement> OkrSetElements { get; set; }
             = new List<OkrSetElement>();
 
         public string? Comment { get; set; }
@@ -15,7 +15,7 @@
 
         public string? AuthorsRating { get; set; }
 
-        public IEnumerable<ReferenceSource> References { get; set; }
+        public IList<ReferenceSource> References { get; set; }
             = new List<ReferenceSource>();
 
         public IEnumerable<Review> Reviews { get; set; }
