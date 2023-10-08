@@ -13,6 +13,6 @@ public enum OkrRuleScopes
     [Description("Objective")]
     Objective = 2,
 
-    [Description("Each KeyResult")]
+    [Description("Key Result")]
     KeyResult = 3
 }
