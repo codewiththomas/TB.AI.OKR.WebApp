@@ -11,8 +11,15 @@
 @if (OkrSets.Any())
 {
     <FluentDataGrid Items="OkrSets.AsQueryable()" GridTemplateColumns="0.2fr 1fr 0.2fr 0.2fr 0.2fr 0.2fr" ResizableColumns=true>
-        <PropertyColumn Property="@(x => x.Level ?? "n.a.")" Sortable="true" Title="Level" />
-        <PropertyColumn Property="@(x => x.Objective)" Sortable="true" Title="Objective" Class="multiline-text" />
+        <PropertyColumn Property="@(x => x.Level ?? "n.a.")" Sortable="true" Title="Level" />        
+        <TemplateColumn Title="OKR set" Sortable="true" Class="multiline-text">
+            <span><strong>O: @context.Objective</strong></span><br />
+            @for (int i = 0; i < context.KeyResults.Count(); i++)
+            {
+                <span class="TypeRampMinus1FontSize">@($"KR{(i+1)}: {context.KeyResults.ToList()[i]}")</span>
+                <br />
+            }
+        </TemplateColumn>
         <TemplateColumn Title="Key results" Sortable="true">
             @context.KeyResults.Count()
         </TemplateColumn>
