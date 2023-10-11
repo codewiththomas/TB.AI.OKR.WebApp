@@ -83,7 +83,7 @@ public class ReferenceSourceRepository : IReferenceSourceRepository
     /// <param name="id"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public async Task<ReferenceSource> GetByIdAsync(int id)
+    public async Task<ReferenceSource?> GetByIdAsync(int id)
     {
         var referenceSource = await ApplicationDbContext.ReferenceSources
             .FirstOrDefaultAsync(x => x.Id == id);

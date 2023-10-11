@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using TB.AI.OKR.WebApp.Persistence.Entities;
 
 namespace TB.AI.OKR.WebApp.Dtos;
 
@@ -6,37 +7,14 @@ public class OkrSetDto
 {
     public string Objective { get; set; } = string.Empty;
 
-    private string[] KeyResults { get; set; } = new string[5];
-
-    public string KR1
+    public IList<OkrSetElement> KeyResults { get; set; } = new List<OkrSetElement>
     {
-        get => KeyResults[0];
-        set => KeyResults[0] = value;
-    }
+        new OkrSetElement { Type = "keyresult" },
+        new OkrSetElement { Type = "keyresult" },
+        new OkrSetElement { Type = "keyresult" }
+    };
 
-    public string KR2
-    {
-        get => KeyResults[1];
-        set => KeyResults[1] = value;
-    }
 
-    public string KR3
-    {
-        get => KeyResults[2];
-        set => KeyResults[2] = value;
-    }
-
-    public string KR4
-    {
-        get => KeyResults[3];
-        set => KeyResults[3] = value;
-    }
-
-    public string KR5
-    {
-        get => KeyResults[4];
-        set => KeyResults[4] = value;
-    }
 
     public override string ToString()
     {
@@ -44,9 +22,9 @@ public class OkrSetDto
 
         result.AppendLine($"Objective: {Objective}.");
        
-        for (int i = 0; i < KeyResults.Length; i++)
+        for (int i = 0; i < KeyResults.Count(); i++)
         {
-            if (string.IsNullOrWhiteSpace(KeyResults[i]))
+            if (string.IsNullOrWhiteSpace(KeyResults[i].Text))
             {
                 continue;
             }

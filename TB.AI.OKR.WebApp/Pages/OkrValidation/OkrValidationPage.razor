@@ -1,57 +1,36 @@
-﻿@* @page "/okr-validation"
+﻿@page "/okr-validation"
 @page "/okr-validation/{Id:int}"
 
-@using Microsoft.Fast.Components.FluentUI
 @using TB.AI.OKR.WebApp.Dtos;
 @using TB.AI.OKR.WebApp.Persistence.Entities;
-@using TB.AI.OKR.WebApp.Persistence.Repositories;
 @using TB.OpenAI.ApiClient;
-@using TB.OpenAI.ApiClient.Contracts.Chat;
 
-<h3>OKR Validation</h3>
+<h3>OkrValidationPage</h3>
 
-<ul>
-    @foreach (var instruction in GetInstructionSetWithPlaceholders(Instructions, Placeholders))
-    {
-        <li class="small">@instruction</li>
-    }
-</ul>
-
-<InputText @bind-Value="OkrSetDto.Objective"/>
-<InputText @bind-Value="OkrSetDto.KR1"/>
-<InputText @bind-Value="OkrSetDto.KR2"/>
-<InputText @bind-Value="OkrSetDto.KR3"/>
-<InputText @bind-Value="OkrSetDto.KR4"/>
-<InputText @bind-Value="OkrSetDto.KR5"/>
-
-<button @onclick="@HandleSubmitButtonClick">Submit</button>
-
-<hr/>
-
-@if (!string.IsNullOrWhiteSpace(Prompt))
+@if (!IsLoaded)
 {
-    <div>
-        <strong>Prompt: </strong>@Prompt
-    </div>
+    <div>Loading...</div>
 }
-
-@if (!string.IsNullOrWhiteSpace(Answer))
+else
 {
-    <div>
-        <strong>Answer: </strong>@Answer
-    </div>
-}
+    <FluentStack Orientation="Orientation.Vertical">
 
-@if (DebugInfos.Any())
-{
-    <div><strong>DebugInfos:</strong></div>
-    <ul>
-        @foreach (var debugInfo in DebugInfos)
+        <FluentTextArea @bind-Value="OkrSetDto.Objective" Cols="100" Rows="3" Resize="TextAreaResize.Both">
+            <span>Objective</span>
+        </FluentTextArea>
+
+        @for (int i = 0; i < OkrSetDto.KeyResults.Count(); i++)
         {
-            <li>@debugInfo</li>
+            var localIndex = i;
+            <FluentTextArea Id="localIndex" @bind-Value="OkrSetDto.KeyResults[localIndex].Text" Cols="75" Rows="2" Resize="TextAreaResize.Both">
+                <span>Key Result @((localIndex + 1).ToString())</span>
+            </FluentTextArea>
         }
-    </ul>
+
+    </FluentStack>
 }
+
+
 
 @code {
 
@@ -62,43 +41,12 @@
 
     public OkrSetDto OkrSetDto { get; set; } = new();
 
+
     public string Prompt { get; set; } = string.Empty;
     public string Answer { get; set; } = string.Empty;
-    public IEnumerable<string> DebugInfos { get; set; } = new List<string>();   
+    public IEnumerable<string> DebugInfos { get; set; } = new List<string>();
 
-    private readonly IEnumerable<string> Instructions = new List<string>
-    {
-        /* Setting the environment */
-        "You are in the role of an OKR master in a company that uses Objectives and Key Results. Your task is to help people " +
-        "formulating good okr sets from a written idea.",
-
-        /* A user provided the following idea that must be transformed in an OKR set*/
-        "A user provided the following OKR set. Start of OKR set: \"[OKRSET]\". This is the end of the OKR set.",
-
-        /* Define criteria for good OKR. set */
-
-        "An OKR set must have an Objective (O) and three to five Key Results (KR).",
-
-        "The objective describes the \"What\", it expresses goals or intends. An Objective is considered as good when: " +
-        " - it is aggresive, yet realistic, " + 
-        " - it is tangible, objective, and unambigous, " + 
-        " - it should be obvious to a rational observer whether an objective has been achieved, " + 
-        " - the successful achievement of an objective must provide clear value to the company. ",
-
-        "Key Results describe the \"How\", they express measurable outcomes. A Key Result is considered as good when: " +
-        " - it is measurable and verifiable, " +
-        " - it is difficult but not impossible to achieve, " +
-        " - it describes outcomes, not activities (if KR includes words like consult, help, analyze, or participate, they describe activities).",
-
-        "Please Rate the provided OKR set on a scale from 0 to 10 where 0 is bad and 10 is outstanding.",
-
-        "Provide the answer as JSON in the format { \"rating\" : RATING, \"hints\" : [{\"hint\": HINT, \"example\": EXAMPLE}] } where RATING is the number you provided and " +
-        "HINTS is an array of hints how the OKR set could be improved. If possible provide an example to each hint, how it could look in a correct way, " +
-        "but stay to the content of the OKR set and do not make up new things.",
-
-        "Your answer must be in German."
-    };
-    private readonly IDictionary<string, string> Placeholders = new Dictionary<string, string>();
+    public bool IsLoaded { get; set; } = false;
 
 
     /// <summary>
@@ -113,88 +61,26 @@
 
             if (okr is not null)
             {
-                OkrSetDto.Objective = okr.Objective;
+                var objective = okr.OkrSetElements
+                    .FirstOrDefault(x => x.Type.Equals("objective"));
 
-                var keyResults = okr.KeyResults != null ? okr.KeyResults.ToArray() : new KeyResult[0];
-                OkrSetDto.KR1 = keyResults.Length > 0 ? keyResults[0].Text : string.Empty;
-                OkrSetDto.KR2 = keyResults.Length > 1 ? keyResults[1].Text : string.Empty;
-                OkrSetDto.KR3 = keyResults.Length > 2 ? keyResults[2].Text : string.Empty;
-                OkrSetDto.KR4 = keyResults.Length > 3 ? keyResults[3].Text : string.Empty;
-                OkrSetDto.KR5 = keyResults.Length > 4 ? keyResults[4].Text : string.Empty;
+                OkrSetDto.Objective = objective?.Text ?? string.Empty;
+
+                var keyResults = okr.OkrSetElements
+                    .Where(x => x.Type.Equals("keyresult"))
+                    .ToList();
+
+                if (keyResults.Count() > 0)
+                {
+                    OkrSetDto.KeyResults = keyResults;
+                }
             }
         }
         await base.OnParametersSetAsync();
+
+        IsLoaded = true;
     }
 
 
-    /// <summary>
-    /// Injects the values of the placeholders into the instruction set.
-    /// </summary>
-    /// <param name="instructions"></param>
-    /// <param name="placeholders"></param>
-    /// <returns></returns>
-    private IEnumerable<string> GetInstructionSetWithPlaceholders(IEnumerable<string> instructions, IDictionary<string, string> placeholders)
-    {
-        var prompt = new List<string>();
-
-        foreach (var instruction in instructions)
-        {
-            var newInstruction = instruction;
-            foreach (var placeholder in placeholders)
-            {
-                newInstruction = newInstruction.Replace(placeholder.Key, placeholder.Value);
-            }
-            prompt.Add(newInstruction);
-        }
-
-        return prompt;
-    }
-
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="instructions"></param>
-    /// <returns></returns>
-    private string BuildPrompt(IEnumerable<string> instructions)
-        => string.Join("\n ", instructions);
-
-
-    /// <summary>
-    /// Gets invoked as soon as the submit button is clicked. Sends a request to the AI API and displays the answer.
-    /// </summary>
-    /// <returns></returns>
-    private async Task HandleSubmitButtonClick()
-    {
-        Answer = string.Empty;
-        DebugInfos = new List<string>();
-
-        if (!Placeholders.ContainsKey("[OKRSET]"))
-        {
-            Placeholders.Add("[OKRSET]", string.Empty);
-        }
-        Placeholders["[OKRSET]"] = OkrSetDto.ToString();
-
-        var instructions = GetInstructionSetWithPlaceholders(Instructions, Placeholders);
-
-        Prompt = BuildPrompt(instructions);
-
-        var chatCompletionRequest = new CreateChatCompletionRequest();
-        chatCompletionRequest.Messages.Add(new CreateChatCompletionRequestMessage
-        {
-            Content = Prompt
-        });
-
-        var answer = await OpenAiApiClient!.Chat.CreateChatCompletionAsync(chatCompletionRequest);
-
-        foreach (var choice in answer.Choices)
-        {
-            Answer += choice?.Message?.Content ?? "LEER";
-        }
-
-        DebugInfos = answer.DebugInfos;
-
-        StateHasChanged();
-    }
+    
 }
- *@

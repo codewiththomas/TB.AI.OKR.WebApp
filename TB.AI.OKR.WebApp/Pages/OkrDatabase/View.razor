@@ -1,0 +1,66 @@
+﻿@page "/okr-database/view/{Id:int}"
+
+@using Microsoft.Fast.Components.FluentUI;
+@using TB.AI.OKR.WebApp.Persistence.Entities;
+@using TB.AI.OKR.WebApp.Persistence.Repositories;
+@using TB.AI.OKR.WebApp.Persistence.Repositories.Labels;
+
+<h3>View OKR set</h3>
+
+@if (!IsLoaded)
+{
+    <div>Loading....</div>
+}
+else
+{
+    
+}
+
+
+@code {
+
+    [Inject] private NavigationManager? NavigationManager { get; set; }
+    [Inject] private ILabelRepository? LabelRepository { get; set; }
+    [Inject] private IOkrSetRepository? OkrRepository { get; set; }
+    [Inject] private IReferenceSourceRepository? ReferenceSourceRepository { get; set; }
+    [Inject] private IToastService? ToastService { get; set; }
+
+    [Parameter] public int Id { get; set; }
+
+    public bool IsLoaded { get; set; } = false;
+
+    private OkrSet OkrSet { get; set; } = new();
+    private IList<Label<OkrSet>> OkrSetLabels { get; set; } = new List<Label<OkrSet>>();
+    private IList<Label<OkrSetElement>> OkrSetElementLabels { get; set; } = new List<Label<OkrSetElement>>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var okrSet = await OkrRepository!.GetByIdAsync(Id);
+
+        if (okrSet is null)
+        {
+            ToastService!.ShowSuccess($"No OKR set to Id = {Id}.");
+            NavigationManager!.NavigateTo("/okr-database");
+        }
+
+        OkrSet = okrSet!;
+
+        var okrSetLabels = await LabelRepository!.GetOkrSetLabelsAsync(new LabelsFilter
+            {
+                EntityIds = new int[] { okrSet!.Id }
+            });
+        OkrSetLabels = okrSetLabels;
+
+        if (okrSet.OkrSetElements.Any())
+        {
+            var okrSetElementLabels = await LabelRepository!.GetOkrSetElementLabelsAsync(new LabelsFilter
+                {
+                    EntityIds = okrSet.OkrSetElements.Select(x => x.Id).ToArray()
+                });
+            OkrSetElementLabels = okrSetElementLabels;
+        }
+
+        IsLoaded = true;
+    }
+}
+

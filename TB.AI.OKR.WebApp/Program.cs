@@ -43,9 +43,10 @@ public class Program
         });
 
         /* Add persistence layer */
+        builder.Services.AddScoped<ILabelRepository, LabelRepository>();
         builder.Services.AddScoped<IOkrRuleRepository, OkrRuleRepository>();
         builder.Services.AddScoped<IOkrSetRepository, OkrSetRepository>();
-        builder.Services.AddScoped<IReferenceSourceRepository, ReferenceSourceRepository>();
+        builder.Services.AddScoped<IReferenceSourceRepository, ReferenceSourceRepository>();        
 
         #endregion
 

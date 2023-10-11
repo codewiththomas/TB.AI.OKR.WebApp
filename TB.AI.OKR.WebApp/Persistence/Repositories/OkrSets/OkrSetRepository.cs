@@ -91,7 +91,7 @@ public class OkrSetRepository : IOkrSetRepository
 
             return newOkrSetEntity;
         }
-        catch (Exception e)
+        catch (Exception)
         {
             await transaction.RollbackAsync();            
             throw;

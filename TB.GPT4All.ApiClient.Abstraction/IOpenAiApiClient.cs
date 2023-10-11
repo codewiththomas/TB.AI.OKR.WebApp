@@ -6,6 +6,6 @@ namespace TB.GPT4All.ApiClient;
 
 public interface IGPT4AllApiClient : IOpenAiApiClient
 {
-    public IChatRepository Chat { get; set; }
-    public IModelsRepository Models { get; set; }
+    //public IChatRepository Chat { get; set; }
+    //public IModelsRepository Models { get; set; }
 }
