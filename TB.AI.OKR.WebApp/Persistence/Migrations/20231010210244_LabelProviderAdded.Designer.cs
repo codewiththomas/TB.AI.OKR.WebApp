@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TB.AI.OKR.WebApp.Persistence.Contexts;
 
@@ -10,9 +11,11 @@ using TB.AI.OKR.WebApp.Persistence.Contexts;
 namespace TB.AI.OKR.WebApp.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231010210244_LabelProviderAdded")]
+    partial class LabelProviderAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.11");
@@ -61,9 +64,6 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                     b.Property<string>("Comment")
                         .HasColumnType("TEXT");
 
-                    b.Property<TimeSpan>("LabelingDuration")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Value")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -89,9 +89,6 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Comment")
-                        .HasColumnType("TEXT");
-
-                    b.Property<TimeSpan>("LabelingDuration")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Value")

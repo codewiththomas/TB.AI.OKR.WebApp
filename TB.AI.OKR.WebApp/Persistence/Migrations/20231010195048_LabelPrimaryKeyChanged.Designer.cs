@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TB.AI.OKR.WebApp.Persistence.Contexts;
 
@@ -10,9 +11,11 @@ using TB.AI.OKR.WebApp.Persistence.Contexts;
 namespace TB.AI.OKR.WebApp.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231010195048_LabelPrimaryKeyChanged")]
+    partial class LabelPrimaryKeyChanged
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.11");
@@ -52,16 +55,10 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                     b.Property<int>("EntityId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("LabelProvider")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("LabelName")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Comment")
-                        .HasColumnType("TEXT");
-
-                    b.Property<TimeSpan>("LabelingDuration")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Value")
@@ -72,7 +69,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("EntityId", "LabelProvider", "LabelName");
+                    b.HasKey("EntityId", "LabelName");
 
                     b.ToTable("OkrSetLabels");
                 });
@@ -82,16 +79,10 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                     b.Property<int>("EntityId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("LabelProvider")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("LabelName")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Comment")
-                        .HasColumnType("TEXT");
-
-                    b.Property<TimeSpan>("LabelingDuration")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Value")
@@ -102,7 +93,7 @@ namespace TB.AI.OKR.WebApp.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("EntityId", "LabelProvider", "LabelName");
+                    b.HasKey("EntityId", "LabelName");
 
                     b.ToTable("OkrSetElementLabels");
                 });
