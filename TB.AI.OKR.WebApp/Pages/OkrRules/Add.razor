@@ -130,6 +130,7 @@
         e.Items = AvailableReferences
             .Where(i => i.ReferenceSymbol.StartsWith(e.Text, StringComparison.OrdinalIgnoreCase))
             .OrderBy(i => i.ReferenceSymbol);
+        await Task.Delay(0);
     }
 
 
@@ -151,7 +152,7 @@
 
         result.Append("A");
 
-        char firstLetterOfScope = Scope.GetDescription(false)[0];
+        char firstLetterOfScope = Scope.GetDescription(false)![0];
         string vowels = "aeiou";
 
         if (vowels.Contains(firstLetterOfScope, StringComparison.OrdinalIgnoreCase))
