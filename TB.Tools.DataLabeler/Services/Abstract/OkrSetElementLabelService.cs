@@ -50,13 +50,14 @@ public abstract class OkrSetElementLabelService : LabelService<OkrSetElement>
     /// <exception cref="NotImplementedException"></exception>
     public override async Task<Label<OkrSetElement>> CreateLabelByRule(OkrSetElement okrSetElement, OkrRule okrRule, bool showConsoleOutput = true)
     {
+        var labelProcessStartDateTime = DateTime.Now;
+
         var expectedOkrElementType = OkrSetElementType;
 
         if (!okrSetElement.Type.Equals(OkrSetElementType))
         {
             throw new ArgumentException($"Wrong element type! Expeced {OkrSetElementType} but it was {okrSetElement.Type}");
         }
-
 
         var expectedScope = okrSetElement.Type switch
         {
@@ -125,12 +126,15 @@ public abstract class OkrSetElementLabelService : LabelService<OkrSetElement>
         var json = resultFunction.Choices[0].Message?.FunctionCall?.Arguments ?? string.Empty;
         var parsedResult = JsonSerializer.Deserialize<FunctionArguments>(json);
 
+        var labelProcessEndDateTime = DateTime.Now;
+
         var labelEntity = new Label<OkrSetElement>
         {
             EntityId = okrSetElement.Id,
             LabelName = GetLabelName(okrRule) + (ElementNumber == null ? string.Empty : $"_{ElementNumber}"),
             Value = parsedResult!.RuleApplies,
-            Comment = parsedResult.Explanation
+            Comment = parsedResult.Explanation,
+            LabelingDuration = labelProcessEndDateTime - labelProcessStartDateTime
         };
 
         return labelEntity;
@@ -140,6 +144,8 @@ public abstract class OkrSetElementLabelService : LabelService<OkrSetElement>
 
     public Label<OkrSetElement> CreateReadabilityLabel(OkrSetElement okrSetElement, ReadabilityAlgorithms algorithm = ReadabilityAlgorithms.AutomatedReadabilityIndex)
     {
+        var labelProcessStartDateTime = DateTime.Now;
+
         if (!okrSetElement.Type.Equals(OkrSetElementType))
         {
             throw new ArgumentException($"Wrong element type! Expeced {OkrSetElementType} but it was {okrSetElement.Type}");
@@ -147,11 +153,14 @@ public abstract class OkrSetElementLabelService : LabelService<OkrSetElement>
 
         var readabilityScore = okrSetElement.Text.CalculateReadability(algorithm);
 
+        var labelProcessEndDateTime = DateTime.Now;
+
         var labelEntity = new Label<OkrSetElement>
         {
             EntityId = okrSetElement.Id,
             LabelName = "readability_" + algorithm.ToString().ToLower() + (ElementNumber == null ? string.Empty : $"_{ElementNumber}"),
-            Value = readabilityScore.ToString()
+            Value = readabilityScore.ToString(),
+            LabelingDuration = labelProcessEndDateTime - labelProcessStartDateTime
         };
 
         return labelEntity;

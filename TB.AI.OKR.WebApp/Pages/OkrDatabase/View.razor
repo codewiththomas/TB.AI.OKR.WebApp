@@ -1,6 +1,7 @@
 ﻿@page "/okr-database/view/{Id:int}"
 
 @using Microsoft.Fast.Components.FluentUI;
+@using TB.AI.OKR.WebApp.Extensions;
 @using TB.AI.OKR.WebApp.Persistence.Entities;
 @using TB.AI.OKR.WebApp.Persistence.Repositories;
 @using TB.AI.OKR.WebApp.Persistence.Repositories.Labels;
@@ -13,8 +14,57 @@
 }
 else
 {
-    
-}
+    <div>@(new MarkupString(OkrSet.ToSetString("<br/>")))</div>
+
+    <FluentDataGrid Items="OkrSetLabels.AsQueryable()">
+        <PropertyColumn Property="@(x => x.LabelName)"></PropertyColumn>
+        
+        @foreach (var labelProvider in OkrSetLabels.Select(x => x.LabelProvider).Order().Distinct())
+        {
+            <PropertyColumn Property="@(x => x.Value)" Title="@($"Provider: {labelProvider}")">
+
+            </PropertyColumn>
+        }
+
+    </FluentDataGrid>
+
+
+    <FluentDivider></FluentDivider>
+
+    foreach (var elementType in new string[] { "objective", "keyresult" })
+    {
+        if (OkrSet.OkrSetElements.Any(x => x.Type.Equals(elementType)))
+        {
+            var elements = OkrSet.OkrSetElements.Where(x => x.Type.Equals(elementType)).AsQueryable();
+
+            foreach (var element in elements)
+            {
+                var labels = OkrSetElementLabels
+                    .Where(x => x.EntityId == element.Id)
+                    .AsQueryable();
+
+                <h5>@element.ToString()</h5>
+
+                <FluentDataGrid Items="labels">
+                    <PropertyColumn Property="@(x => x.LabelName)"></PropertyColumn>
+
+                    @foreach (var labelProvider in OkrSetLabels.Select(x => x.LabelProvider).Order().Distinct())
+                    {
+                        <PropertyColumn Property="@(x => x.Value)" Title="@($"Provider: {labelProvider}")">
+
+                        </PropertyColumn>
+                    }
+
+                </FluentDataGrid>
+
+            }
+        }
+    }
+
+
+
+
+ }
 
 
 @code {

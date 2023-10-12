@@ -32,6 +32,8 @@ public class OkrSetLabelService : LabelService<OkrSet>
     /// <exception cref="ArgumentException"></exception>
     public override async Task<Label<OkrSet>> CreateLabelByRule(OkrSet okrSet, OkrRule okrRule, bool showConsoleOutput = true)
     {
+        var labelProcessStartDateTime = DateTime.Now;
+
         if (okrRule.Scope != OkrRuleScopes.OkrSet)
         {
             throw new ArgumentException("Only rules with scope OKR set may be applied to OKR sets!");
@@ -87,12 +89,15 @@ public class OkrSetLabelService : LabelService<OkrSet>
         var json = resultFunction.Choices[0].Message?.FunctionCall?.Arguments ?? string.Empty;
         var parsedResult = JsonSerializer.Deserialize<FunctionArguments>(json);
 
+        var labelProcessEndDateTime = DateTime.Now;
+
         var labelEntity = new Label<OkrSet>
         {
             EntityId = okrSet.Id,
             LabelName = GetLabelName(okrRule),
             Value = parsedResult!.RuleApplies,
-            Comment = parsedResult.Explanation
+            Comment = parsedResult.Explanation,
+            LabelingDuration = labelProcessEndDateTime - labelProcessStartDateTime
         };
 
         return labelEntity;
@@ -106,15 +111,20 @@ public class OkrSetLabelService : LabelService<OkrSet>
     /// <returns></returns>
     public Label<OkrSet> CreateObjectiveCountLabel(OkrSet okrSet)
     {
+        var labelProcessStartDateTime = DateTime.Now;
+
         var objectiveCount = okrSet.OkrSetElements
             .Where(x => x.Type.Equals("objective"))
             .Count();
+
+        var labelProcessEndDateTime = DateTime.Now;
 
         var objectiveCountLabel = new Label<OkrSet>
         {
             EntityId = okrSet.Id,
             LabelName = "objective_count",
-            Value = objectiveCount.ToString()
+            Value = objectiveCount.ToString(),
+            LabelingDuration = labelProcessEndDateTime - labelProcessStartDateTime
         };
 
         return objectiveCountLabel;
@@ -128,15 +138,20 @@ public class OkrSetLabelService : LabelService<OkrSet>
     /// <returns></returns>
     public Label<OkrSet> CreateKeyResultsCountLabel(OkrSet okrSet)
     {
+        var labelProcessStartDateTime = DateTime.Now;
+
         var keyResultsCount = okrSet.OkrSetElements
             .Where(x => x.Type.Equals("keyresult"))
             .Count();
+
+        var labelProcessEndDateTime = DateTime.Now;
 
         var keyResultsCountLabel = new Label<OkrSet>
         {
             EntityId = okrSet.Id,
             LabelName = "keyresult_count",
-            Value = keyResultsCount.ToString()
+            Value = keyResultsCount.ToString(),
+            LabelingDuration = labelProcessEndDateTime - labelProcessStartDateTime
         };
 
         return keyResultsCountLabel;
