@@ -1,5 +1,4 @@
-﻿using System.Reflection.Metadata.Ecma335;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 using TB.OpenAI.ApiClient.Abstract.Contracts.Chat;
 
 namespace TB.OpenAI.ApiClient.Contracts.Chat;
