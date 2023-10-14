@@ -18,12 +18,23 @@ namespace TB.AI.OKR.WebApp.Persistence.Repositories
         /// Get all OKR rules
         /// </summary>
         /// <returns></returns>
-        public async Task<IEnumerable<OkrRule>> GetAllAsync()
+        public async Task<IEnumerable<OkrRule>> GetAllAsync(GetOkrRulesFilter? filter)
         {
-            var okrRules = await ApplicationDbContext.OkrRules
+            var okrRulesQuery = ApplicationDbContext.OkrRules
                 .Include(x => x.References)
-                .ToListAsync();
-            return okrRules;
+                .AsQueryable();
+
+            if (filter is not null)
+            {
+                if (filter.IsActive is not null)
+                {
+                    okrRulesQuery = okrRulesQuery
+                        .Where(x => x.IsActive == filter.IsActive)
+                        .AsQueryable();
+                }                
+            }
+
+            return await okrRulesQuery.ToListAsync();
         }
 
 
