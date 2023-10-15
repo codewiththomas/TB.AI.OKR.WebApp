@@ -1,10 +1,11 @@
 using TB.OpenAI.ApiClient;
 using TB.GPT4All.ApiClient;
-using TB.AI.OKR.WebApp.Persistence.Contexts;
 using Microsoft.Fast.Components.FluentUI;
-using TB.AI.OKR.WebApp.Persistence.Repositories;
 using Microsoft.OpenApi.Models;
 using TB.Tools.Readability;
+using TB.AI.OKR.Infrastructure.Persistence.Contexts;
+using TB.AI.OKR.Core.Application;
+using TB.AI.OKR.Infrastructure.Persistence;
 
 namespace TB.AI.OKR.WebApp;
 

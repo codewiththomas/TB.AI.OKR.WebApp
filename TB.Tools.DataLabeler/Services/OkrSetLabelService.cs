@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System.Data;
 using System.Text.Json;
-using TB.AI.OKR.WebApp;
-using TB.AI.OKR.WebApp.Extensions;
-using TB.AI.OKR.WebApp.Persistence.Entities;
+using TB.AI.OKR.Core.Domain;
 using TB.OpenAI.ApiClient;
 using TB.OpenAI.ApiClient.Abstract.Contracts.Chat;
 using TB.OpenAI.ApiClient.Contracts.Chat;

@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
-using TB.AI.OKR.WebApp.Persistence.Entities;
+using TB.AI.OKR.Core.Domain;
 using TB.OpenAI.ApiClient.Abstract.Contracts.Chat;
 
 namespace TB.Tools.DataLabeler.Services.Abstract;

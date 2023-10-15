@@ -29,14 +29,15 @@ public class CreateChatCompletionRequest
     /// "auto" is the default if functions are present.
     /// </summary>
     [JsonPropertyName("function_call")]
-    public object FunctionCall { get; set; } = "none";
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public object? FunctionCall { get; set; }
 
     /// <summary>
     /// A list of functions the model may generate JSON inputs for.
     /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("functions")]
-    public IList<FunctionDefinition> Functions { get; set; }
-        = new List<FunctionDefinition>();
+    public IList<FunctionDefinition>? Functions { get; set; }
 
     /// <summary>
     /// The maximum number of tokens to generate in the completion. The token count of your prompt 

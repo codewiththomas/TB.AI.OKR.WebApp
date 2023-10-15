@@ -1,9 +1,6 @@
 ﻿@page "/okr-database"
 @page "/okr-database/index"
 
-@using TB.AI.OKR.WebApp.Persistence.Entities;
-@using TB.AI.OKR.WebApp.Persistence.Repositories;
-
 <h3>OKR sample database (@OkrSets.Count() sets)</h3>
 
 <FluentButton OnClick='() => NavigationManager!.NavigateTo("/okr-database/add")'>Add new OKR</FluentButton>

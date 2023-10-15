@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System.Text.Json;
-using TB.AI.OKR.WebApp;
-using TB.AI.OKR.WebApp.Persistence.Entities;
 using TB.OpenAI.ApiClient.Abstract.Contracts.Chat;
 using TB.OpenAI.ApiClient.Contracts.Chat;
 using TB.OpenAI.ApiClient;
 using Microsoft.Fast.Components.FluentUI;
 using TB.Tools.Readability;
+using TB.AI.OKR.Core.Domain;
 
 namespace TB.Tools.DataLabeler.Services.Abstract;
 

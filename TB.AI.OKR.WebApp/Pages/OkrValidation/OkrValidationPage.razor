@@ -2,8 +2,8 @@
 @page "/okr-validation/{Id:int}"
 
 @using TB.AI.OKR.WebApp.Dtos;
-@using TB.AI.OKR.WebApp.Persistence.Entities;
 @using TB.OpenAI.ApiClient;
+@using TB.OpenAI.ApiClient.Contracts.Chat;
 
 <h3>OkrValidationPage</h3>
 
@@ -27,7 +27,36 @@ else
             </FluentTextArea>
         }
 
+        <button @onclick="@HandleSubmitButtonClick">Submit</button>
+
+        @if (!string.IsNullOrWhiteSpace(Prompt))
+        {
+            <div>
+                <strong>Prompt:</strong><br/>@(new MarkupString(Prompt.Replace("\n", "<br/>")))
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Answer))
+        {
+            <div>
+                <strong>Answer: </strong>@(new MarkupString(Answer))
+            </div>
+        }
+
+        @if (DebugInfos.Any())
+        {
+            <div><strong>DebugInfos:</strong></div>
+            <ul>
+                @foreach (var debugInfo in DebugInfos)
+                {
+                    <li>@debugInfo</li>
+                }
+            </ul>
+        }
+
     </FluentStack>
+
+
 }
 
 
@@ -36,6 +65,7 @@ else
 
     [Inject] public IOpenAiApiClient? OpenAiApiClient { get; set; }
     [Inject] private IOkrSetRepository? OkrRepository { get; set; }
+    [Inject] private IOkrRuleRepository? OkrRuleRepository { get; set; }
 
     [Parameter] public int? Id { get; set; }
 
@@ -82,5 +112,83 @@ else
     }
 
 
-    
+    /// <summary>
+    /// Dynamically builds the Instruction set.
+    /// </summary>
+    /// <returns></returns>
+    private async Task<IList<string>> BuildInstructionSetAsync()
+    {
+        var resultList = new List<string>();
+
+        /* Setting the environment */
+        resultList.Add("You are in the role of an OKR master in a company that uses Objective and KeyResults.");
+        resultList.Add("Your task is to help people formulating good OKR sets from a written idea.");
+
+        /* Define the rules */
+        resultList.Add("Here is a set of rules that OKR have:");
+
+        var okrRules = await OkrRuleRepository!.GetAllAsync(new GetOkrRulesFilter { IsActive = true });
+
+        foreach (var okrRule in okrRules.OrderBy(x => x.Scope).ThenBy(x => x.Severity))
+        {
+            resultList.Add(okrRule.ToString());
+        }
+
+        resultList.Add("You are in the role of an OKR master in a company that uses Objective and KeyResults.");
+
+        /* TASK */
+        resultList.Add(
+            "Check for each of the rules, if they apply (do it on your own, don't show the results). Rules with MUST have " + 
+            "the heighest weight, SHOULD is nice to have and the rest is optional. " + 
+            "Rate the OKR on a scale of 0 to 10 where 10 is the best. " +
+            "If necessary give hints how the OKR could be improved. Stick to the given information. Do not make up things!" + 
+            "Return a HTML string. You may use linebreaks and lists.");
+
+        /* Inject OKR set */
+        resultList.Add("#### BEGIN OF OKR SET TO RATE ######");
+        resultList.Add(OkrSetDto.ToString());
+        resultList.Add("#### END OF OKR SET ######");
+
+
+
+        return resultList;
+    }
+
+
+    /// <summary>
+    /// Generatives a prompt string from the instruction set.
+    /// </summary>
+    /// <returns></returns>
+    private async Task<string> BuildPromptAsync()
+        => string.Join("\n ", await BuildInstructionSetAsync());
+
+
+    /// <summary>
+    /// Gets invoked as soon as the submit button is clicked. Sends a request to the AI API and displays the answer.
+    /// </summary>
+    /// <returns></returns>
+    private async Task HandleSubmitButtonClick()
+    {
+        Answer = string.Empty;
+        DebugInfos = new List<string>();
+
+        Prompt = await BuildPromptAsync();
+
+        var chatCompletionRequest = new CreateChatCompletionRequest();
+        chatCompletionRequest.Messages.Add(new CreateChatCompletionRequestMessage
+            {
+                Content = Prompt
+            });
+
+        var answer = await OpenAiApiClient!.Chat.CreateChatCompletionAsync(chatCompletionRequest);
+
+        foreach (var choice in answer.Choices)
+        {
+            Answer += choice?.Message?.Content ?? "LEER";
+        }
+
+        DebugInfos = answer.DebugInfos;
+
+        StateHasChanged();
+    }
 }

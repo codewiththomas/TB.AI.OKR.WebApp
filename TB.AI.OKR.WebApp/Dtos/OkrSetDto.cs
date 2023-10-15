@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using TB.AI.OKR.WebApp.Persistence.Entities;
+using TB.AI.OKR.Core.Domain;
 
 namespace TB.AI.OKR.WebApp.Dtos;
 
@@ -20,7 +20,7 @@ public class OkrSetDto
     {
         var result = new StringBuilder();
 
-        result.AppendLine($"Objective: {Objective}.");
+        result.AppendLine($"Objective: {Objective}");
        
         for (int i = 0; i < KeyResults.Count(); i++)
         {
@@ -28,7 +28,7 @@ public class OkrSetDto
             {
                 continue;
             }
-            result.AppendLine($"Key Result {i + 1}: {KeyResults[i]}.");
+            result.AppendLine($"Key Result {i + 1}: {KeyResults[i].Text}");
         }
 
         return result.ToString();

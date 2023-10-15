@@ -8,25 +8,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Persistence\Repositories\OkrSetElements\**" />
-    <Content Remove="Persistence\Repositories\OkrSetElements\**" />
-    <EmbeddedResource Remove="Persistence\Repositories\OkrSetElements\**" />
-    <None Remove="Persistence\Repositories\OkrSetElements\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.11">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.11" />
     <PackageReference Include="Microsoft.Fast.Components.FluentUI" Version="3.1.1" />
     <PackageReference Include="Microsoft.Fast.Components.FluentUI.Icons" Version="3.1.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TB.AI.OKR.Infrastructure.Persistence\TB.AI.OKR.Infrastructure.Persistence.csproj" />
     <ProjectReference Include="..\TB.GPT4All.ApiClient.DependencyInjection\TB.GPT4All.ApiClient.DependencyInjection.csproj" />
     <ProjectReference Include="..\TB.OpenAI.ApiClient.DependencyInjection\TB.OpenAI.ApiClient.DependencyInjection.csproj" />
     <ProjectReference Include="..\TB.Tools.Readability\TB.Tools.Readability.csproj" />

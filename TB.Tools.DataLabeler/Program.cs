@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using TB.AI.OKR.WebApp;
-using TB.AI.OKR.WebApp.Persistence.Contexts;
+using TB.AI.OKR.Core.Domain;
+using TB.AI.OKR.Infrastructure.Persistence.Contexts;
 using TB.Tools.DataLabeler;
 
 
