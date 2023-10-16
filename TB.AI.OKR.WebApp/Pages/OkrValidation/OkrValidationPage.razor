@@ -29,30 +29,41 @@ else
 
         <button @onclick="@HandleSubmitButtonClick">Submit</button>
 
-        @if (!string.IsNullOrWhiteSpace(Prompt))
+        @if (IsFetchingFromAiProvider)
         {
-            <div>
-                <strong>Prompt:</strong><br/>@(new MarkupString(Prompt.Replace("\n", "<br/>")))
-            </div>
+            <FluentProgressRing>Fetching data from AI provider...</FluentProgressRing>
         }
-
-        @if (!string.IsNullOrWhiteSpace(Answer))
+        else if (!string.IsNullOrWhiteSpace(Answer))
         {
             <div>
                 <strong>Answer: </strong>@(new MarkupString(Answer))
             </div>
         }
 
-        @if (DebugInfos.Any())
+
+        @if (!string.IsNullOrWhiteSpace(Prompt))
         {
-            <div><strong>DebugInfos:</strong></div>
-            <ul>
-                @foreach (var debugInfo in DebugInfos)
-                {
-                    <li>@debugInfo</li>
-                }
-            </ul>
+            <h5>DEBUG</h5>
+            
+            <div>
+                <strong>Prompt:</strong><br/>@(new MarkupString(Prompt.Replace("\n", "<br/>")))
+            </div>
+
+            @if (DebugInfos.Any())
+            {
+                <div><strong>DebugInfos:</strong></div>
+                <ul>
+                    @foreach (var debugInfo in DebugInfos)
+                    {
+                        <li>@debugInfo</li>
+                    }
+                </ul>
+            }
         }
+
+
+
+
 
     </FluentStack>
 
@@ -77,6 +88,7 @@ else
     public IEnumerable<string> DebugInfos { get; set; } = new List<string>();
 
     public bool IsLoaded { get; set; } = false;
+    public bool IsFetchingFromAiProvider { get; set; } = false;
 
 
     /// <summary>
@@ -169,6 +181,9 @@ else
     /// <returns></returns>
     private async Task HandleSubmitButtonClick()
     {
+        IsFetchingFromAiProvider = true;
+        StateHasChanged();
+
         Answer = string.Empty;
         DebugInfos = new List<string>();
 
@@ -189,6 +204,7 @@ else
 
         DebugInfos = answer.DebugInfos;
 
+        IsFetchingFromAiProvider = false;
         StateHasChanged();
     }
 }
