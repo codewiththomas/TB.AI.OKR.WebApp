@@ -15,17 +15,21 @@ else
 {
     <FluentStack Orientation="Orientation.Vertical">
 
-        <FluentTextArea @bind-Value="OkrSetDto.Objective" Cols="100" Rows="3" Resize="TextAreaResize.Both">
+        <FluentTextArea Required="true" @bind-Value="OkrSetDto.Objective" Cols="100" Rows="3" Resize="TextAreaResize.Both">
             <span>Objective</span>
         </FluentTextArea>
 
         @for (int i = 0; i < OkrSetDto.KeyResults.Count(); i++)
         {
             var localIndex = i;
-            <FluentTextArea Id="localIndex" @bind-Value="OkrSetDto.KeyResults[localIndex].Text" Cols="75" Rows="2" Resize="TextAreaResize.Both">
+            <FluentTextArea Required="@(localIndex == 1 ? true : false)" Id="localIndex" @bind-Value="OkrSetDto.KeyResults[localIndex].Text" Cols="75" Rows="2" Resize="TextAreaResize.Both">
                 <span>Key Result @((localIndex + 1).ToString())</span>
             </FluentTextArea>
         }
+
+        <FluentTextArea @bind-Value="OkrSetDto.Vision" Cols="100" Rows="3" Resize="TextAreaResize.Both">
+            <span>Mission/Vision (Optional)</span>
+        </FluentTextArea>
 
         <button @onclick="@HandleSubmitButtonClick">Submit</button>
 
@@ -134,7 +138,7 @@ else
 
         /* Setting the environment */
         resultList.Add("You are in the role of an OKR master in a company that uses Objective and KeyResults.");
-        resultList.Add("Your task is to help people formulating good OKR sets from a written idea.");
+        resultList.Add("Your task is to help people formulate good OKR sets from a written idea.");
 
         /* Define the rules */
         resultList.Add("Here is a set of rules that OKR have:");
@@ -148,12 +152,17 @@ else
 
         resultList.Add("You are in the role of an OKR master in a company that uses Objective and KeyResults.");
 
+        if (!string.IsNullOrWhiteSpace(OkrSetDto.Vision))
+        {
+            resultList.Add($"The vision/mission of the company is: \"\"\"{OkrSetDto.Vision}\"\"\".");
+        }
+
         /* TASK */
         resultList.Add(
             "Check for each of the rules, if they apply (do it on your own, don't show the results). Rules with MUST have " + 
             "the heighest weight, SHOULD is nice to have and the rest is optional. " + 
             "Rate the OKR on a scale of 0 to 10 where 10 is the best. " +
-            "If necessary give hints how the OKR could be improved. Stick to the given information. Do not make up things!" + 
+            "If necessary give hints how the OKR could be improved. Stick to the given information. Do not make up things! " + 
             "Return a HTML string. You may use linebreaks and lists.");
 
         /* Inject OKR set */

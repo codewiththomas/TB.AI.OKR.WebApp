@@ -5,6 +5,8 @@ namespace TB.AI.OKR.WebApp.Dtos;
 
 public class OkrSetDto
 {
+    public string Vision { get; set; } = string.Empty;
+
     public string Objective { get; set; } = string.Empty;
 
     public IList<OkrSetElement> KeyResults { get; set; } = new List<OkrSetElement>
