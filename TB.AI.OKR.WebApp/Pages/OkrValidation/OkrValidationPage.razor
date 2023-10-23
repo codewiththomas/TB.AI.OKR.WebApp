@@ -15,59 +15,64 @@ else
 {
     <FluentStack Orientation="Orientation.Vertical">
 
-        <FluentTextArea Required="true" @bind-Value="OkrSetDto.Objective" Cols="100" Rows="3" Resize="TextAreaResize.Both">
-            <span>Objective</span>
-        </FluentTextArea>
-
-        @for (int i = 0; i < OkrSetDto.KeyResults.Count(); i++)
+        @if (!IsSubmitted)
         {
-            var localIndex = i;
-            <FluentTextArea Required="@(localIndex == 1 ? true : false)" Id="localIndex" @bind-Value="OkrSetDto.KeyResults[localIndex].Text" Cols="75" Rows="2" Resize="TextAreaResize.Both">
-                <span>Key Result @((localIndex + 1).ToString())</span>
+            <FluentTextArea Required="true" @bind-Value="OkrSetDto.Objective" Cols="100" Rows="3" Resize="TextAreaResize.Both">
+                <span>Objective</span>
             </FluentTextArea>
-        }
 
-        <FluentTextArea @bind-Value="OkrSetDto.Vision" Cols="100" Rows="3" Resize="TextAreaResize.Both">
-            <span>Mission/Vision (Optional)</span>
-        </FluentTextArea>
-
-        <button @onclick="@HandleSubmitButtonClick">Submit</button>
-
-        @if (IsFetchingFromAiProvider)
-        {
-            <FluentProgressRing>Fetching data from AI provider...</FluentProgressRing>
-        }
-        else if (!string.IsNullOrWhiteSpace(Answer))
-        {
-            <div>
-                <strong>Answer: </strong>@(new MarkupString(Answer))
-            </div>
-        }
-
-
-        @if (!string.IsNullOrWhiteSpace(Prompt))
-        {
-            <h5>DEBUG</h5>
-            
-            <div>
-                <strong>Prompt:</strong><br/>@(new MarkupString(Prompt.Replace("\n", "<br/>")))
-            </div>
-
-            @if (DebugInfos.Any())
+            @for (int i = 0; i < OkrSetDto.KeyResults.Count(); i++)
             {
-                <div><strong>DebugInfos:</strong></div>
-                <ul>
-                    @foreach (var debugInfo in DebugInfos)
-                    {
-                        <li>@debugInfo</li>
-                    }
-                </ul>
+                var localIndex = i;
+                <FluentTextArea Required="@(localIndex == 1 ? true : false)" Id="localIndex" @bind-Value="OkrSetDto.KeyResults[localIndex].Text" Cols="75" Rows="2" Resize="TextAreaResize.Both">
+                    <span>Key Result @((localIndex + 1).ToString())</span>
+                </FluentTextArea>
+            }
+
+            <FluentTextArea @bind-Value="OkrSetDto.Vision" Cols="100" Rows="3" Resize="TextAreaResize.Both">
+                <span>Mission/Vision (Optional)</span>
+            </FluentTextArea>
+
+            <button @onclick="@HandleSubmitButtonClick">Submit</button>
+        }
+        else
+        {
+            <div>
+                @(new MarkupString(OkrSetDto.ToString().Replace("\n", "<br/>")))
+            </div>
+
+            @if (IsFetchingFromAiProvider)
+            {
+                <FluentProgressRing>Fetching data from AI provider...</FluentProgressRing>
+            }
+            else if (!string.IsNullOrWhiteSpace(Answer))
+            {
+                <button @onclick="@ResetPageAsync">Reset</button>
+                <div>
+                    <strong>Answer: </strong>@(new MarkupString(Answer))
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Prompt))
+            {
+                <h5>DEBUG</h5>
+
+                <div>
+                    <strong>Prompt:</strong><br />@(new MarkupString(Prompt.Replace("\n", "<br/>")))
+                </div>
+
+                @if (DebugInfos.Any())
+                {
+                    <div><strong>DebugInfos:</strong></div>
+                    <ul>
+                        @foreach (var debugInfo in DebugInfos)
+                        {
+                            <li class="small">@debugInfo</li>
+                        }
+                    </ul>
+                }
             }
         }
-
-
-
-
 
     </FluentStack>
 
@@ -93,6 +98,7 @@ else
 
     public bool IsLoaded { get; set; } = false;
     public bool IsFetchingFromAiProvider { get; set; } = false;
+    public bool IsSubmitted { get; set; } = false;
 
 
     /// <summary>
@@ -101,6 +107,26 @@ else
     /// <returns></returns>
     protected override async Task OnParametersSetAsync()
     {
+        await ResetPageAsync();
+    }
+
+
+    /// <summary>
+    /// Resets the page to initial settings
+    /// </summary>
+    /// <returns></returns>
+    private async Task ResetPageAsync()
+    {
+        OkrSetDto = new();
+
+        IsSubmitted = false;
+        IsLoaded = false;
+        IsFetchingFromAiProvider = false;
+
+        Prompt = string.Empty;
+        Answer = string.Empty;
+        DebugInfos = new List<string>();
+
         if (Id.HasValue)
         {
             var okr = await OkrRepository!.GetByIdAsync(Id.Value);
@@ -138,10 +164,24 @@ else
 
         /* Setting the environment */
         resultList.Add("You are in the role of an OKR master in a company that uses Objective and KeyResults.");
-        resultList.Add("Your task is to help people formulate good OKR sets from a written idea.");
+        resultList.Add(
+            "Your task is to check the quality of OKR sets by checking them against a set of validation rules, " + 
+            "giving them a rating from 1 to 10 (where 10 is best) and, if necessary, providing hints for improvement. " + 
+            "Hints about why rating was lower than 10 and what could be done better is required, when rating is lower than 10."
+        );
+
+        /* Mission/Vision */
+        if (!string.IsNullOrWhiteSpace(OkrSetDto.Vision))
+        {
+            resultList.Add($"The vision/mission of the company is: \"\"\"{OkrSetDto.Vision}\"\"\".");
+        }
 
         /* Define the rules */
-        resultList.Add("Here is a set of rules that OKR have:");
+        resultList.Add("### Begin of validation rules ###");
+        resultList.Add(
+            "The company has a set of rules for validating OKR sets. This are the only rules to consider. " + 
+            "Forget every thing else you know about OKR!"
+        );       
 
         var okrRules = await OkrRuleRepository!.GetAllAsync(new GetOkrRulesFilter { IsActive = true });
 
@@ -149,28 +189,50 @@ else
         {
             resultList.Add(okrRule.ToString());
         }
-
-        resultList.Add("You are in the role of an OKR master in a company that uses Objective and KeyResults.");
-
-        if (!string.IsNullOrWhiteSpace(OkrSetDto.Vision))
-        {
-            resultList.Add($"The vision/mission of the company is: \"\"\"{OkrSetDto.Vision}\"\"\".");
-        }
+        resultList.Add("### End of validation rules ###");
 
         /* TASK */
+        resultList.Add("### BEGIN solving strategy ###");
+        resultList.Add("Here is a strategy how to solve your task. Do not produce output for the following steps, just use them as help. ");
+
+        resultList.Add("In order finish your task, do the following steps, without producing an output for those steps: ");
         resultList.Add(
-            "Check for each of the rules, if they apply (do it on your own, don't show the results). Rules with MUST have " + 
-            "the heighest weight, SHOULD is nice to have and the rest is optional. " + 
-            "Rate the OKR on a scale of 0 to 10 where 10 is the best. " +
-            "If necessary give hints how the OKR could be improved. Stick to the given information. Do not make up things! " + 
-            "Return a HTML string. You may use linebreaks and lists.");
+            "- Consider only validation rules provided in this rules list! ");
+        resultList.Add(
+            "- Check for each rule if they apply to the provided OKR. Some rules might to be checked for several elements, " + 
+            "for example, rules affecting a Key Result must be checked for each Key Results. ");
+        resultList.Add(
+            "- if your have a rule that requires a time information (time-bound) and this information is missing, " + 
+            "consider the rule as applied anyway. Do not use this rule for rating and/or hints then. "
+        );
+        resultList.Add(
+            "- Rules with MUST have the heighest weight, SHOULD is nice to have and the rest is optional. "
+        );
+        resultList.Add(
+            "- create a weighted rating for each element. "
+        );
+        resultList.Add(
+            "- create an average total rating. "
+        );
+        resultList.Add("### END solving strategy ###");
+
+
+        resultList.Add("### BEGIN presentation requirements ###");
+        resultList.Add(
+        "- At the end, only present the result, do NOT repeat the input or the steps you have done to get your result! " + 
+        "The result must begin with be the rating you gave, followed by  a list of hints of things that did not apply and what could be done better."
+        );
+        resultList.Add(
+            "- return the result as html string but only use paragraphs, line-breaks, and lists. Present hints, if you have any, in a html list (using ul and li tags)."
+        );
+        resultList.Add("### END presentation requirements ###");
 
         /* Inject OKR set */
         resultList.Add("#### BEGIN OF OKR SET TO RATE ######");
         resultList.Add(OkrSetDto.ToString());
         resultList.Add("#### END OF OKR SET ######");
 
-
+        resultList.Add("Rate the provided OKR. Give hints if necessary as described above. Remember to present as described in presentation requirements!");
 
         return resultList;
     }
@@ -190,6 +252,7 @@ else
     /// <returns></returns>
     private async Task HandleSubmitButtonClick()
     {
+        IsSubmitted = true;
         IsFetchingFromAiProvider = true;
         StateHasChanged();
 
@@ -198,7 +261,11 @@ else
 
         Prompt = await BuildPromptAsync();
 
-        var chatCompletionRequest = new CreateChatCompletionRequest();
+        var chatCompletionRequest = new CreateChatCompletionRequest
+            {
+                Model = "gpt-4",
+                Temperature = 0
+            };
         chatCompletionRequest.Messages.Add(new CreateChatCompletionRequestMessage
             {
                 Content = Prompt
