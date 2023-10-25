@@ -1,7 +1,216 @@
 ﻿@page "/okr-proposal"
+@using TB.OpenAI.ApiClient;
+@using TB.OpenAI.ApiClient.Contracts.Chat;
 
 <h3>OkrProposalPage</h3>
 
+@if (!IsLoaded)
+{
+    <div>Loading...</div>
+}
+else
+{
+    <FluentStack Orientation="Orientation.Vertical">
+
+        @if (!IsSubmitted)
+        {
+            <FluentTextArea Required="true" @bind-Value="Idea" Cols="100" Rows="3" Resize="TextAreaResize.Both">
+                <span>Describe your idea.</span>
+            </FluentTextArea>
+
+            <FluentTextArea @bind-Value="Vision" Cols="100" Rows="2" Resize="TextAreaResize.Both">
+                <span>Mission/Vision (Optional)</span>
+            </FluentTextArea>
+
+            <button @onclick="@HandleSubmitButtonClick">Submit</button>
+        }
+        else
+        {
+            <div>
+                <p>@Idea</p>                
+                <p>
+                    Vission/Mission: @(string.IsNullOrWhiteSpace(Vision) ? "not provided" : Vision)
+                </p>
+            </div>
+
+            @if (IsFetchingFromAiProvider)
+            {
+                <FluentProgressRing>Fetching data from AI provider...</FluentProgressRing>
+            }
+            else if (Answers.Any())
+            {
+                <button @onclick="@ResetPageAsync">Reset</button>
+                <div>
+                    @foreach (var answer in Answers)
+                    {
+                        <p>@answer</p>
+                    }
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Prompt))
+            {
+                <h5>DEBUG</h5>
+
+                <div>
+                    <strong>Prompt:</strong><br />@(new MarkupString(Prompt.Replace("\n", "<br/>")))
+                </div>
+
+                @if (DebugInfos.Any())
+                {
+                    <div><strong>DebugInfos:</strong></div>
+                    <ul>
+                        @foreach (var debugInfo in DebugInfos)
+                        {
+                            <li class="small">@debugInfo</li>
+                        }
+                    </ul>
+                }
+            }
+        }
+
+    </FluentStack>
+
+
+}
+
 @code {
+
+    [Inject] public IOpenAiApiClient? OpenAiApiClient { get; set; }
+    [Inject] private IOkrSetRepository? OkrRepository { get; set; }
+    [Inject] private IOkrRuleRepository? OkrRuleRepository { get; set; }
+
+    public string? Vision { get; set; }
+
+    public string Idea { get; set; } = string.Empty;
+
+    public string Prompt { get; set; } = string.Empty;
+    public IList<string> Answers { get; set; } = new List<string>();
+    public IEnumerable<string> DebugInfos { get; set; } = new List<string>();
+
+    public bool IsLoaded { get; set; } = false;
+    public bool IsFetchingFromAiProvider { get; set; } = false;
+    public bool IsSubmitted { get; set; } = false;
+
+    /// <summary>
+    /// Gets called before every render of the component, as soon as the parameters (Id) is set.
+    /// </summary>
+    /// <returns></returns>
+    protected override async Task OnParametersSetAsync()
+    {
+        await ResetPageAsync();
+    }
+
+
+    /// <summary>
+    /// Resets the page to initial settings
+    /// </summary>
+    /// <returns></returns>
+    private async Task ResetPageAsync()
+    {
+        IsSubmitted = false;
+        IsLoaded = false;
+        IsFetchingFromAiProvider = false;
+
+        Prompt = string.Empty;
+        Answers = new List<string>();
+        DebugInfos = new List<string>();
+
+        await base.OnParametersSetAsync();
+
+        IsLoaded = true;
+        StateHasChanged();
+    }
+
+
+
+    /// <summary>
+    /// Dynamically builds the Instruction set.
+    /// </summary>
+    /// <returns></returns>
+    private async Task<IList<string>> BuildInstructionSetAsync()
+    {
+        var resultList = new List<string>();
+
+        /* Setting the environment */
+        resultList.Add("You are in the role of an OKR master in a company that uses Objective and KeyResults.");
+        resultList.Add(
+            "Your task is to help people to write great OKR sets that comply the company OKR validation rule set."
+        );
+
+        /* Mission/Vision */
+        if (!string.IsNullOrWhiteSpace(Vision))
+        {
+            resultList.Add(
+                $"Besides the rule validation, also check that idea and OKR set align to the vision/mission of the company, which is: " + 
+                $"\"\"\"{Vision}\"\"\".");
+        }
+
+        /* Define the rules */
+        resultList.Add("### Begin of validation rules ###");
+        resultList.Add(
+            "The company has a set of rules for validating OKR sets. This are the only rules to consider. " +
+            "Forget every thing else you know about OKR!"
+        );
+
+        var okrRules = await OkrRuleRepository!.GetAllAsync(new GetOkrRulesFilter { IsActive = true });
+
+        foreach (var okrRule in okrRules.OrderBy(x => x.Scope).ThenBy(x => x.Severity))
+        {
+            resultList.Add(okrRule.ToString());
+        }
+        resultList.Add("### End of validation rules ###");
+
+        resultList.Add(
+            "Create an OKR set from the idea. If any information are missing, don't make them up but ask for them."
+        );
+
+        /* Inject idea */
+        resultList.Add("#### BEGIN OF IDEA ######");
+        resultList.Add(Idea!.ToString());
+        resultList.Add("#### END OF IDEA ######");
+
+        return resultList;
+    }
+
+
+    /// <summary>
+    /// Generatives a prompt string from the instruction set.
+    /// </summary>
+    /// <returns></returns>
+    private async Task<string> BuildPromptAsync()
+        => string.Join("\n ", await BuildInstructionSetAsync());
+
+
+    private async Task HandleSubmitButtonClick()
+    {
+        IsSubmitted = true;
+        IsFetchingFromAiProvider = true;
+        StateHasChanged();
+
+        Prompt = await BuildPromptAsync();
+
+        var chatCompletionRequest = new CreateChatCompletionRequest
+            {
+                Temperature = 0.5,
+                NumberOfCompletionsToCreate = 3
+            };
+        chatCompletionRequest.Messages.Add(new CreateChatCompletionRequestMessage
+            {
+                Content = Prompt
+            });
+
+        var answer = await OpenAiApiClient!.Chat.CreateChatCompletionAsync(chatCompletionRequest);
+
+        foreach (var choice in answer.Choices)
+        {
+            Answers.Add(choice?.Message?.Content ?? "LEER");
+        }
+
+        DebugInfos = answer.DebugInfos;
+
+        IsFetchingFromAiProvider = false;
+        StateHasChanged();
+    }
 
 }
