@@ -14,7 +14,7 @@ public class Label<T>
     [ForeignKey(nameof(EntityId))]
     public T? Entity { get; set; }
 
-    public string LabelProvider { get; set; } = "base";
+    public string LabelProvider { get; set; } = string.Empty;
 
     public string LabelName { get; set; } = string.Empty;
 

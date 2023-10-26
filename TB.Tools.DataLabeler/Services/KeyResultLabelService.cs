@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using TB.AI.OKR.Core.Domain;
 using TB.Tools.DataLabeler.Services.Abstract;
 
 namespace TB.Tools.DataLabeler.Services;

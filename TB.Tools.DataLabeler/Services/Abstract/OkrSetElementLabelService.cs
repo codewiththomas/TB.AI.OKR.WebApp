@@ -6,6 +6,7 @@ using TB.OpenAI.ApiClient;
 using Microsoft.Fast.Components.FluentUI;
 using TB.Tools.Readability;
 using TB.AI.OKR.Core.Domain;
+using TB.AI.OKR.Infrastructure.Persistence.Migrations;
 
 namespace TB.Tools.DataLabeler.Services.Abstract;
 
@@ -47,7 +48,7 @@ public abstract class OkrSetElementLabelService : LabelService<OkrSetElement>
     /// <param name="showConsoleOutput"></param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    public override async Task<Label<OkrSetElement>> CreateLabelByRule(OkrSetElement okrSetElement, OkrRule okrRule, bool showConsoleOutput = true)
+    public override async Task<Label<OkrSetElement>> CreateLabelByRule(OkrSetElement okrSetElement, OkrRule okrRule, string labelProvider, bool showConsoleOutput = true)
     {
         var labelProcessStartDateTime = DateTime.Now;
 
@@ -131,6 +132,7 @@ public abstract class OkrSetElementLabelService : LabelService<OkrSetElement>
         {
             EntityId = okrSetElement.Id,
             LabelName = GetLabelName(okrRule) + (ElementNumber == null ? string.Empty : $"_{ElementNumber}"),
+            LabelProvider = labelProvider,
             Value = parsedResult!.RuleApplies,
             Comment = parsedResult.Explanation,
             LabelingDuration = labelProcessEndDateTime - labelProcessStartDateTime
@@ -141,7 +143,7 @@ public abstract class OkrSetElementLabelService : LabelService<OkrSetElement>
 
 
 
-    public Label<OkrSetElement> CreateReadabilityLabel(OkrSetElement okrSetElement, ReadabilityAlgorithms algorithm = ReadabilityAlgorithms.AutomatedReadabilityIndex)
+    public Label<OkrSetElement> CreateReadabilityLabel(OkrSetElement okrSetElement, string labelProvider, ReadabilityAlgorithms algorithm = ReadabilityAlgorithms.AutomatedReadabilityIndex)
     {
         var labelProcessStartDateTime = DateTime.Now;
 
@@ -158,6 +160,7 @@ public abstract class OkrSetElementLabelService : LabelService<OkrSetElement>
         {
             EntityId = okrSetElement.Id,
             LabelName = "readability_" + algorithm.ToString().ToLower() + (ElementNumber == null ? string.Empty : $"_{ElementNumber}"),
+            LabelProvider = labelProvider,
             Value = readabilityScore.ToString(),
             LabelingDuration = labelProcessEndDateTime - labelProcessStartDateTime
         };

@@ -19,6 +19,8 @@ IConfiguration config = builder.Build();
 
 #endregion
 
+var labelProvider = "gpt-3.5-turbo";
+
 
 #region Init DbContext
 
@@ -41,7 +43,7 @@ var okrSets = await applicationDbContext.OkrSets
 
 foreach (var okrSet in okrSets)
 {
-    var objectiveCountLabel = labeler.OkrSetLabeler.CreateObjectiveCountLabel(okrSet);
+    var objectiveCountLabel = labeler.OkrSetLabeler.CreateObjectiveCountLabel(okrSet, labelProvider);
 
     var objectiveCountLabelExists = await applicationDbContext.OkrSetLabels
         .Where(x => x.EntityId == okrSet.Id)
@@ -68,7 +70,7 @@ await applicationDbContext.SaveChangesAsync();
 
 foreach (var okrSet in okrSets)
 {
-    var keyResultCountLabel = labeler.OkrSetLabeler.CreateKeyResultsCountLabel(okrSet);
+    var keyResultCountLabel = labeler.OkrSetLabeler.CreateKeyResultsCountLabel(okrSet, labelProvider);
     
     var keyResultCountLabelExists = await applicationDbContext.OkrSetLabels
         .Where(x => x.EntityId == okrSet.Id)
@@ -100,7 +102,7 @@ foreach (var okrSet in okrSets)
     foreach (var objective in okrSet.OkrSetElements.Where(x => x.Type == "objective").OrderBy(x => x.Id))
     {
         //labeler.ObjectiveLabeler.ElementNumber = elementNumber++;
-        var label = labeler.ObjectiveLabeler.CreateReadabilityLabel(objective);
+        var label = labeler.ObjectiveLabeler.CreateReadabilityLabel(objective, labelProvider);
         var labelExists = await applicationDbContext.OkrSetElementLabels
             .Where(x => x.EntityId == objective.Id)
             .Where(x => x.LabelProvider == label.LabelProvider)
@@ -131,7 +133,7 @@ foreach (var okrSet in okrSets)
     foreach (var element in okrSet.OkrSetElements.Where(x => x.Type == "keyresult").OrderBy(x => x.Id))
     {
         //labeler.KeyResultLabeler.ElementNumber = elementNumber++;
-        var label = labeler.KeyResultLabeler.CreateReadabilityLabel(element);
+        var label = labeler.KeyResultLabeler.CreateReadabilityLabel(element, labelProvider);
         var labelExists = await applicationDbContext.OkrSetElementLabels
             .Where(x => x.EntityId == element.Id)
             .Where(x => x.LabelProvider == label.LabelProvider)
@@ -171,6 +173,7 @@ foreach (var ruleScope in ruleScopes)
 {
     Console.WriteLine(ruleScope);
     var rulesInScope = await applicationDbContext.OkrRules
+        .Where(x => x.IsActive)
         .Where(x => x.Scope.Equals(ruleScope))
         .ToListAsync();
 
@@ -190,14 +193,16 @@ foreach (var ruleScope in ruleScopes)
             {
                 /* Check, if okrSet was labeled already */
                 var existingLabel = await applicationDbContext.OkrSetLabels
-                    .Where(x => x.LabelName.Equals(labelName) && x.EntityId == okrSet.Id)
+                    .Where(x => x.LabelName.Equals(labelName))
+                    .Where(x => x.EntityId == okrSet.Id)
+                    .Where(x => x.LabelProvider == labelProvider)
                     .AnyAsync();
 
                 if (existingLabel)
                 {
                     continue;
                 }
-                var labelEntity = await labeler.OkrSetLabeler.CreateLabelByRule(okrSet, okrRule);
+                var labelEntity = await labeler.OkrSetLabeler.CreateLabelByRule(okrSet, okrRule, labelProvider);
 
                 await applicationDbContext.OkrSetLabels.AddAsync(labelEntity);
                 await applicationDbContext.SaveChangesAsync();
@@ -225,7 +230,9 @@ foreach (var ruleScope in ruleScopes)
             foreach (var okrSetElement in okrSetElementsToLabel)
             {
                 var existingLabel = await applicationDbContext.OkrSetElementLabels
-                    .Where(x => x.LabelName.Equals(labelName) && x.EntityId == okrSetElement.Id)
+                    .Where(x => x.LabelName.Equals(labelName))
+                    .Where(x => x.EntityId == okrSetElement.Id)
+                    .Where(x => x.LabelProvider == labelProvider)
                     .AnyAsync();
 
                 if (existingLabel)
@@ -235,12 +242,12 @@ foreach (var ruleScope in ruleScopes)
 
                 if (ruleScope == OkrRuleScopes.Objective)
                 {
-                    var labelEntity = await labeler.ObjectiveLabeler.CreateLabelByRule(okrSetElement, okrRule);
+                    var labelEntity = await labeler.ObjectiveLabeler.CreateLabelByRule(okrSetElement, okrRule, labelProvider);
                     await applicationDbContext.OkrSetElementLabels.AddAsync(labelEntity);
                 }
                 else
                 {
-                    var labelEntity = await labeler.KeyResultLabeler.CreateLabelByRule(okrSetElement, okrRule);
+                    var labelEntity = await labeler.KeyResultLabeler.CreateLabelByRule(okrSetElement, okrRule, labelProvider);
                     await applicationDbContext.OkrSetElementLabels.AddAsync(labelEntity);
                 }
                                 

@@ -14,7 +14,7 @@ public abstract class LabelService<T>
     }
 
 
-    public abstract Task<Label<T>> CreateLabelByRule(T entity, OkrRule rule, bool showConsoleOutput = true);
+    public abstract Task<Label<T>> CreateLabelByRule(T entity, OkrRule rule, string labelProvider, bool showConsoleOutput = true);
 
 
     protected string GetLabelName(OkrRule okrRule)
