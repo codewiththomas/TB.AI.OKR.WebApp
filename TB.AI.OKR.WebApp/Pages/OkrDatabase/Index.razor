@@ -7,7 +7,12 @@
 
 @if (OkrSets.Any())
 {
-    <FluentDataGrid Items="OkrSets.AsQueryable()" GridTemplateColumns="0.2fr 1fr 0.2fr 0.2fr 0.2fr 0.2fr" ResizableColumns=true>
+    <FluentDataGrid Items="GetFilteredItems()" GridTemplateColumns=" 0.1fr 0.2fr 1fr 0.2fr 0.2fr 0.2fr 0.2fr" ResizableColumns=true>
+        <TemplateColumn Title="Training/Validation">
+            <FluentSwitch Value="context.IsTrainingData"
+                          ValueChanged="(bool newValue) => SwitchActiveState(context.Id, newValue)">
+            </FluentSwitch>
+        </TemplateColumn>
         <PropertyColumn Property="@(x => x.Level ?? "n.a.")" Sortable="true" Title="Level" />        
         <TemplateColumn Title="OKR set" Sortable="true" Class="multiline-text">
             <span><strong>O: @context.Objective</strong></span><br />
@@ -47,10 +52,42 @@ else
     /// Method gets invoked only with first render.
     /// </summary>
     /// <returns></returns>
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         OkrSets = await OkrRepository!.GetAllAsync();
         OkrSets = OkrSets.OrderBy(x => x.Objective);
-        await base.OnInitializedAsync();
+        await base.OnParametersSetAsync();
+    }
+
+
+    private IQueryable<GetOkrSetsDto>? GetFilteredItems()
+    {
+        return OkrSets?
+            .OrderBy(x => x.Objective)
+            .AsQueryable();
+    }
+
+
+    /// <summary>
+    /// Switches the state whether the OKR set is used for training or for validation of an ML model.
+    /// </summary>
+    /// <param name="okrSetId"></param>
+    /// <param name="newValue"></param>
+    /// <returns></returns>
+    private async Task SwitchActiveState(int okrSetId, bool newValue)
+    {
+        var result = await OkrRepository!.UpdateTrainingStatus(okrSetId, newValue);
+
+        if (result)
+        {
+            var changedOkrSetDto = OkrSets.First(x => x.Id == okrSetId);
+            changedOkrSetDto.IsTrainingData = newValue;    
+            ToastService!.ShowSuccess("Changes saved to database.");
+            StateHasChanged();
+        }
+        else
+        {
+            ToastService!.ShowError("Error while saving to database.");
+        }
     }
 }
