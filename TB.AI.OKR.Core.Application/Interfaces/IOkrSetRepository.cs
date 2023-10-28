@@ -11,4 +11,6 @@ public interface IOkrSetRepository
     Task<OkrSet?> GetByIdAsync(int id);
 
     Task<OkrSet> UpdateAsync(UpdateOkrSetDto updateOkrSetDto);
+
+    Task<bool> UpdateTrainingStatus(int okrSetId, bool isTrainingData);
 }

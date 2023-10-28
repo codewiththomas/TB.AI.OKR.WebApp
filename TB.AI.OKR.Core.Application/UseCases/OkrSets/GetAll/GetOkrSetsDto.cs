@@ -20,5 +20,7 @@ public class GetOkrSetsDto
 
     public IEnumerable<GetReferenceSourcesDto> References { get; set; }
         = new List<GetReferenceSourcesDto>();
+
+    public bool IsTrainingData { get; set; }
 }
 

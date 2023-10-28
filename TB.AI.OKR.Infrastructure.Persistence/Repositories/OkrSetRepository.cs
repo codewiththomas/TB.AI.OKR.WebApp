@@ -281,6 +281,7 @@ public class OkrSetRepository : IOkrSetRepository
                 KeyResults = okrSet.OkrSetElements.Where(x => x.Type.ToLower() == "keyresult").Select(x => x.Text).ToList(),
                 Vision = okrSet.Vision,
                 Level = okrSet.Level,
+                IsTrainingData = okrSet.UseForSampleDataset,
                 References = okrSet.References.Select(x => new GetReferenceSourcesDto
                 {
                     Id = x.Id,
@@ -309,4 +310,32 @@ public class OkrSetRepository : IOkrSetRepository
         return okr;
     }
 
+
+    /// <summary>
+    /// Switches the set whether the OKR set should be considered as training or validation data.
+    /// </summary>
+    /// <param name="okrSetId"></param>
+    /// <param name="isTrainingData"></param>
+    /// <returns></returns>
+    public async Task<bool> UpdateTrainingStatus(int okrSetId, bool isTrainingData)
+    {
+        var okrSet = await ApplicationDbContext.OkrSets
+            .FirstOrDefaultAsync(x => x.Id == okrSetId);
+
+        if (okrSet == null)
+        {
+            return false;
+        }
+
+        if (okrSet.UseForSampleDataset == isTrainingData)
+        {
+            return true;
+        }
+
+        okrSet.UseForSampleDataset = isTrainingData;
+
+        var result = await ApplicationDbContext.SaveChangesAsync();
+
+        return result > 0;
+    }
 }
