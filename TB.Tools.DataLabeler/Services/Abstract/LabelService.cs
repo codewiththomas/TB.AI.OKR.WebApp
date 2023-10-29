@@ -7,14 +7,16 @@ namespace TB.Tools.DataLabeler.Services.Abstract;
 public abstract class LabelService<T>
 {
     protected readonly IConfiguration _configuration;
+    protected LabelProviders LabelProvider { get; private set; }
 
-    public LabelService(IConfiguration configuration)
+    public LabelService(IConfiguration configuration, LabelProviders labelProvider)
     {
         _configuration = configuration;
+        LabelProvider = labelProvider;
     }
 
 
-    public abstract Task<Label<T>> CreateLabelByRule(T entity, OkrRule rule, string labelProvider, bool showConsoleOutput = true);
+    public abstract Task<Label<T>> CreateLabelByRule(T entity, OkrRule rule, bool showConsoleOutput = true);
 
 
     protected string GetLabelName(OkrRule okrRule)

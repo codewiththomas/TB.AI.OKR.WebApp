@@ -1,7 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
+using OkrML;
 using System.Data;
 using System.Text.Json;
+using TB.AI.OKR.Core.Application;
 using TB.AI.OKR.Core.Domain;
+using TB.GPT4All.ApiClient;
 using TB.OpenAI.ApiClient;
 using TB.OpenAI.ApiClient.Abstract.Contracts.Chat;
 using TB.OpenAI.ApiClient.Contracts.Chat;
@@ -16,7 +19,8 @@ public class OkrSetLabelService : LabelService<OkrSet>
     /// Constructor for dependency injection
     /// </summary>
     /// <param name="configuration"></param>
-    public OkrSetLabelService(IConfiguration configuration) : base(configuration)
+    public OkrSetLabelService(IConfiguration configuration, LabelProviders labelProvider) 
+        : base(configuration, labelProvider)
     { }
 
 
@@ -28,21 +32,39 @@ public class OkrSetLabelService : LabelService<OkrSet>
     /// <param name="showConsoleOutput"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
-    public override async Task<Label<OkrSet>> CreateLabelByRule(OkrSet okrSet, OkrRule okrRule, string labelProvider, bool showConsoleOutput = true)
+    public override async Task<Label<OkrSet>> CreateLabelByRule(OkrSet okrSet, OkrRule okrRule, bool showConsoleOutput = true)
     {
         var labelProcessStartDateTime = DateTime.Now;
+        string ruleApplies = "NO";
+        string explanation = string.Empty;
 
         if (okrRule.Scope != OkrRuleScopes.OkrSet)
         {
             throw new ArgumentException("Only rules with scope OKR set may be applied to OKR sets!");
         }
 
-        var openAiService = new OpenAiApiClient(_configuration);
-
-        var chatCompletionMessage = new CreateChatCompletionRequest
+        if (LabelProvider == LabelProviders.Annotator
+            || LabelProvider == LabelProviders.OpenAI_GPT_35_Turbo
+            || LabelProvider == LabelProviders.OpenAI_GPT_35_Turbo
+            || LabelProvider == LabelProviders.GPT4All_Falcon
+            || LabelProvider == LabelProviders.GPT4All_Hermes_LLaMA2)
         {
-            Model = "gpt-3.5-turbo",
-            Messages = new List<CreateChatCompletionRequestMessage>
+            IOpenAiApiClient aiService;
+
+            if (LabelProvider == LabelProviders.GPT4All_Falcon
+                || LabelProvider == LabelProviders.GPT4All_Hermes_LLaMA2)
+            {
+                aiService = new GPT4AllApiClient(_configuration);
+            }
+            else
+            {
+                aiService = new OpenAiApiClient(_configuration);
+            }
+
+            var chatCompletionMessage = new CreateChatCompletionRequest
+            {
+                Model = LabelProvider.GetOpenAiModelName(),
+                Messages = new List<CreateChatCompletionRequestMessage>
             {
                 new CreateChatCompletionRequestMessage
                 {
@@ -65,27 +87,74 @@ public class OkrSetLabelService : LabelService<OkrSet>
                     Role = "user"
                 }
             },
-            FunctionCall = new { name = $"{GetClassificationFunctionDefinition().Name}" },
-            Functions = new List<FunctionDefinition>
+                FunctionCall = new { name = $"{GetClassificationFunctionDefinition().Name}" },
+                Functions = new List<FunctionDefinition>
             {
                 GetClassificationFunctionDefinition()
             }
-        };
+            };
 
-        var resultFunction = await openAiService.Chat.CreateChatCompletionAsync(chatCompletionMessage);
+            try
+            {
+                var resultFunction = await aiService.Chat.CreateChatCompletionAsync(chatCompletionMessage);
 
-        if (showConsoleOutput)
-        {
-            var output = string.Join("\n***********\n", chatCompletionMessage.Messages.Select(x => x.Content));
-            Console.WriteLine(output);
+                if (showConsoleOutput)
+                {
+                    var output = string.Join("\n***********\n", chatCompletionMessage.Messages.Select(x => x.Content));
+                    Console.WriteLine(output);
 
-            Console.WriteLine(
-                $"******************\n" +
-                $"Function: {resultFunction.Choices[0].Message?.FunctionCall?.Arguments ?? string.Empty}\n");
+                    Console.WriteLine(
+                        $"******************\n" +
+                        $"Function: {resultFunction.Choices[0].Message?.FunctionCall?.Arguments ?? string.Empty}\n");
+                }
+
+                var json = resultFunction.Choices[0].Message?.FunctionCall?.Arguments ?? string.Empty;
+
+                if (!string.IsNullOrEmpty(json))
+                {
+                    var parsedResult = JsonSerializer.Deserialize<FunctionArguments>(json);
+
+                    ruleApplies = parsedResult!.RuleApplies;
+                    explanation = parsedResult!.Explanation ?? string.Empty;
+                }
+                else //GPT4All does not support functions YET. In this case the classic message has to be read
+                {
+                    var answer = resultFunction.Choices[0].Message?.Content;
+
+                    if (!string.IsNullOrWhiteSpace(answer) 
+                        && answer.Contains("YES", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ruleApplies = "YES";
+                        explanation = answer;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await Console.Out.WriteLineAsync("ERROR: " + ex.Message);
+            }
         }
         
-        var json = resultFunction.Choices[0].Message?.FunctionCall?.Arguments ?? string.Empty;
-        var parsedResult = JsonSerializer.Deserialize<FunctionArguments>(json);
+        else if (LabelProvider == LabelProviders.ML)
+        {
+            //Load sample data
+            var sampleData = new OkrSetElementLabeler.ModelInput()
+            {
+                Text = okrSet.ToSetString(),
+                Type = @"okrset",
+                LabelName = GetLabelName(okrRule),
+            };
+
+            //Load model and predict output
+            var result = OkrSetElementLabeler.Predict(sampleData);
+
+        }
+
+        else
+        {
+            throw new NotImplementedException();
+        }
+
 
         var labelProcessEndDateTime = DateTime.Now;
 
@@ -93,9 +162,9 @@ public class OkrSetLabelService : LabelService<OkrSet>
         {
             EntityId = okrSet.Id,
             LabelName = GetLabelName(okrRule),
-            LabelProvider = labelProvider,
-            Value = parsedResult!.RuleApplies,
-            Comment = parsedResult.Explanation,
+            LabelProvider = LabelProvider.GetDescription() ?? LabelProvider.ToString(),
+            Value = ruleApplies, //parsedResult!.RuleApplies,
+            Comment = explanation, //parsedResult.Explanation,
             LabelingDuration = labelProcessEndDateTime - labelProcessStartDateTime
         };
 
@@ -108,7 +177,7 @@ public class OkrSetLabelService : LabelService<OkrSet>
     /// </summary>
     /// <param name="okrSet"></param>
     /// <returns></returns>
-    public Label<OkrSet> CreateObjectiveCountLabel(OkrSet okrSet, string labelProvider)
+    public Label<OkrSet> CreateObjectiveCountLabel(OkrSet okrSet)
     {
         var labelProcessStartDateTime = DateTime.Now;
 
@@ -120,7 +189,7 @@ public class OkrSetLabelService : LabelService<OkrSet>
 
         var objectiveCountLabel = new Label<OkrSet>
         {
-            LabelProvider = labelProvider,
+            LabelProvider = LabelProvider.GetDescription() ?? LabelProvider.ToString(),
             EntityId = okrSet.Id,
             LabelName = "objective_count",
             Value = objectiveCount.ToString(),
@@ -136,7 +205,7 @@ public class OkrSetLabelService : LabelService<OkrSet>
     /// </summary>
     /// <param name="okrSet"></param>
     /// <returns></returns>
-    public Label<OkrSet> CreateKeyResultsCountLabel(OkrSet okrSet, string labelProvider)
+    public Label<OkrSet> CreateKeyResultsCountLabel(OkrSet okrSet)
     {
         var labelProcessStartDateTime = DateTime.Now;
 
@@ -150,7 +219,7 @@ public class OkrSetLabelService : LabelService<OkrSet>
         {
             EntityId = okrSet.Id,
             LabelName = "keyresult_count",
-            LabelProvider = labelProvider,
+            LabelProvider = LabelProvider.GetDescription() ?? LabelProvider.ToString(),
             Value = keyResultsCount.ToString(),
             LabelingDuration = labelProcessEndDateTime - labelProcessStartDateTime
         };

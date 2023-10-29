@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OkrML\OkrML.Console.csproj" />
     <ProjectReference Include="..\TB.AI.OKR.WebApp\TB.AI.OKR.WebApp.csproj" />
   </ItemGroup>
 

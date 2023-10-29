@@ -6,7 +6,8 @@ using TB.OpenAI.ApiClient;
 using Microsoft.Fast.Components.FluentUI;
 using TB.Tools.Readability;
 using TB.AI.OKR.Core.Domain;
-using TB.AI.OKR.Infrastructure.Persistence.Migrations;
+using OkrML;
+using TB.GPT4All.ApiClient;
 
 namespace TB.Tools.DataLabeler.Services.Abstract;
 
@@ -18,7 +19,8 @@ public abstract class OkrSetElementLabelService : LabelService<OkrSetElement>
     /// <param name="configuration"></param>
     /// <param name="okrSetElementType"></param>
     /// <exception cref="ArgumentException"></exception>
-    public OkrSetElementLabelService(IConfiguration configuration, string okrSetElementType) : base(configuration)
+    public OkrSetElementLabelService(IConfiguration configuration, LabelProviders labelProvider, string okrSetElementType) 
+        : base(configuration, labelProvider)
     {
         OkrSetElementType = okrSetElementType;
 
@@ -48,9 +50,11 @@ public abstract class OkrSetElementLabelService : LabelService<OkrSetElement>
     /// <param name="showConsoleOutput"></param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    public override async Task<Label<OkrSetElement>> CreateLabelByRule(OkrSetElement okrSetElement, OkrRule okrRule, string labelProvider, bool showConsoleOutput = true)
+    public override async Task<Label<OkrSetElement>> CreateLabelByRule(OkrSetElement okrSetElement, OkrRule okrRule, bool showConsoleOutput = true)
     {
         var labelProcessStartDateTime = DateTime.Now;
+        string ruleApplies = "NO";
+        string explanation = string.Empty;
 
         var expectedOkrElementType = OkrSetElementType;
 
@@ -75,12 +79,30 @@ public abstract class OkrSetElementLabelService : LabelService<OkrSetElement>
 
         var entityType = okrRule.Scope.GetDescription();
 
-        var openAiService = new OpenAiApiClient(_configuration);
 
-        var chatCompletionMessage = new CreateChatCompletionRequest
+
+        if (LabelProvider == LabelProviders.Annotator
+            || LabelProvider == LabelProviders.OpenAI_GPT_35_Turbo
+            || LabelProvider == LabelProviders.OpenAI_GPT_35_Turbo
+            || LabelProvider == LabelProviders.GPT4All_Falcon
+            || LabelProvider == LabelProviders.GPT4All_Hermes_LLaMA2)
         {
-            Model = "gpt-3.5-turbo",
-            Messages = new List<CreateChatCompletionRequestMessage>
+            IOpenAiApiClient aiService;
+
+            if (LabelProvider == LabelProviders.GPT4All_Falcon
+                || LabelProvider == LabelProviders.GPT4All_Hermes_LLaMA2)
+            {
+                aiService = new GPT4AllApiClient(_configuration);
+            }
+            else
+            {
+                aiService = new OpenAiApiClient(_configuration);
+            }
+
+            var chatCompletionMessage = new CreateChatCompletionRequest
+            {
+                Model = LabelProvider.GetOpenAiModelName(),
+                Messages = new List<CreateChatCompletionRequestMessage>
             {
                 new CreateChatCompletionRequestMessage
                 {
@@ -104,27 +126,78 @@ public abstract class OkrSetElementLabelService : LabelService<OkrSetElement>
                     Role = "user"
                 }
             },
-            FunctionCall = new { name = $"{GetClassificationFunctionDefinition().Name}" },
-            Functions = new List<FunctionDefinition>
+                FunctionCall = new { name = $"{GetClassificationFunctionDefinition().Name}" },
+                Functions = new List<FunctionDefinition>
             {
                 GetClassificationFunctionDefinition()
             }
-        };
+            };
 
-        var resultFunction = await openAiService.Chat.CreateChatCompletionAsync(chatCompletionMessage);
+            try
+            {
+                var resultFunction = await aiService.Chat.CreateChatCompletionAsync(chatCompletionMessage);
 
-        if (showConsoleOutput)
-        {
-            var output = string.Join("\n***********\n", chatCompletionMessage.Messages.Select(x => x.Content));
-            Console.WriteLine(output);
+                if (showConsoleOutput)
+                {
+                    var output = string.Join("\n***********\n", chatCompletionMessage.Messages.Select(x => x.Content));
+                    Console.WriteLine(output);
 
-            Console.WriteLine(
-                $"******************\n" +
-                $"Function: {resultFunction.Choices[0].Message?.FunctionCall?.Arguments ?? string.Empty}\n");
+                    Console.WriteLine(
+                        $"******************\n" +
+                        $"Function: {resultFunction.Choices[0].Message?.FunctionCall?.Arguments ?? string.Empty}\n");
+                }
+
+                var json = resultFunction.Choices[0].Message?.FunctionCall?.Arguments ?? string.Empty;
+                
+                if (!string.IsNullOrEmpty(json))
+                {
+                    var parsedResult = JsonSerializer.Deserialize<FunctionArguments>(json);
+
+                    ruleApplies = parsedResult!.RuleApplies;
+                    explanation = parsedResult!.Explanation ?? string.Empty;
+                }
+                else //GPT4All does not support functions YET. In this case the classic message has to be read
+                {
+                    var answer = resultFunction.Choices[0].Message?.Content;
+
+                    if (!string.IsNullOrWhiteSpace(answer)
+                        && answer.Contains("YES", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ruleApplies = "YES";
+                        explanation = answer;
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                await Console.Out.WriteLineAsync("ERROR: " + ex.Message);
+            }
+
         }
 
-        var json = resultFunction.Choices[0].Message?.FunctionCall?.Arguments ?? string.Empty;
-        var parsedResult = JsonSerializer.Deserialize<FunctionArguments>(json);
+        else if (LabelProvider == LabelProviders.ML)
+        {
+            //Load sample data
+            var sampleData = new OkrSetElementLabeler.ModelInput()
+            {
+                Text = okrSetElement.Text,
+                Type = OkrSetElementType,
+                LabelName = GetLabelName(okrRule),
+            };
+
+            //Load model and predict output
+            var result = OkrSetElementLabeler.Predict(sampleData);
+            ruleApplies = result.PredictedLabel ? "YES" : "NO";
+            explanation = $"Score = {result.Score}, Probability = {result.Probability}.";
+        }
+
+        else
+        {
+            throw new NotImplementedException();
+        }
+
+
 
         var labelProcessEndDateTime = DateTime.Now;
 
@@ -132,9 +205,9 @@ public abstract class OkrSetElementLabelService : LabelService<OkrSetElement>
         {
             EntityId = okrSetElement.Id,
             LabelName = GetLabelName(okrRule) + (ElementNumber == null ? string.Empty : $"_{ElementNumber}"),
-            LabelProvider = labelProvider,
-            Value = parsedResult!.RuleApplies,
-            Comment = parsedResult.Explanation,
+            LabelProvider = LabelProvider.GetDescription() ?? LabelProvider.ToString(),
+            Value = ruleApplies,
+            Comment = explanation,
             LabelingDuration = labelProcessEndDateTime - labelProcessStartDateTime
         };
 
@@ -143,7 +216,7 @@ public abstract class OkrSetElementLabelService : LabelService<OkrSetElement>
 
 
 
-    public Label<OkrSetElement> CreateReadabilityLabel(OkrSetElement okrSetElement, string labelProvider, ReadabilityAlgorithms algorithm = ReadabilityAlgorithms.AutomatedReadabilityIndex)
+    public Label<OkrSetElement> CreateReadabilityLabel(OkrSetElement okrSetElement, ReadabilityAlgorithms algorithm = ReadabilityAlgorithms.AutomatedReadabilityIndex)
     {
         var labelProcessStartDateTime = DateTime.Now;
 
@@ -160,7 +233,7 @@ public abstract class OkrSetElementLabelService : LabelService<OkrSetElement>
         {
             EntityId = okrSetElement.Id,
             LabelName = "readability_" + algorithm.ToString().ToLower() + (ElementNumber == null ? string.Empty : $"_{ElementNumber}"),
-            LabelProvider = labelProvider,
+            LabelProvider = LabelProvider.GetDescription() ?? LabelProvider.ToString(),
             Value = readabilityScore.ToString(),
             LabelingDuration = labelProcessEndDateTime - labelProcessStartDateTime
         };

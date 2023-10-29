@@ -10,10 +10,10 @@ public class Labeler
     public ObjectiveLabelService ObjectiveLabeler { get; set; }
     public KeyResultLabelService KeyResultLabeler { get; set; }
 
-    public Labeler(IConfiguration configuration)
+    public Labeler(IConfiguration configuration, LabelProviders labelProvider)
     {
-        OkrSetLabeler = new OkrSetLabelService(configuration);
-        ObjectiveLabeler = new ObjectiveLabelService(configuration);
-        KeyResultLabeler = new KeyResultLabelService(configuration);
+        OkrSetLabeler = new OkrSetLabelService(configuration, labelProvider);
+        ObjectiveLabeler = new ObjectiveLabelService(configuration, labelProvider);
+        KeyResultLabeler = new KeyResultLabelService(configuration, labelProvider);
     }
 }
