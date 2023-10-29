@@ -4,7 +4,7 @@ namespace TB.Tools.DataLabeler;
 
 public enum LabelProviders
 {
-    [Description("Annotator")]
+    [Description("annotator")]
     Annotator = 0,
 
     [Description("gpt-3.5-turbo")]
