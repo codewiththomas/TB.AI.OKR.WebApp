@@ -237,18 +237,6 @@ foreach (var labelProvider  in labelProviders)
                         .Where(x => x.LabelProvider == (labelProvider.GetDescription() ?? labelProvider.ToString()))
                         .AnyAsync();
 
-                    //var existingLabelQ =  applicationDbContext.OkrSetElementLabels
-                    //    .Where(x => x.LabelName.Equals(labelName))
-                    //    .Where(x => x.EntityId == okrSetElement.Id)
-                    //    .Where(x => x.LabelProvider == (labelProvider.GetDescription() ?? labelProvider.ToString()))
-                    //    .ToQueryString();
-
-                    //var existingLabelEnti = await applicationDbContext.OkrSetElementLabels
-                    //    .Where(x => x.LabelName.Equals(labelName))
-                    //    .Where(x => x.EntityId == okrSetElement.Id)
-                    //    .Where(x => x.LabelProvider == (labelProvider.GetDescription() ?? labelProvider.ToString()))
-                    //    .FirstOrDefaultAsync();
-
                     if (existingLabel)
                     {
                         continue;
