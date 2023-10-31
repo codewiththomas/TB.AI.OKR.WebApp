@@ -27,7 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.Tools.Readability", "TB.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.Tools.DataLabeler", "TB.Tools.DataLabeler\TB.Tools.DataLabeler.csproj", "{0C9FFA08-1A43-42CB-BB20-B56EF30A93DE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OkrML", "OkrML\OkrML.csproj", "{7562F376-CB7D-426B-B419-CA67ADDEFE14}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OkrML.Console", "OkrML\OkrML.Console.csproj", "{7562F376-CB7D-426B-B419-CA67ADDEFE14}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ML", "ML", "{8F8E1518-F14A-4006-9CDE-5D8CAD44C37A}"
 EndProject
@@ -44,6 +44,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.AI.OKR.Core.Domain", "TB.AI.OKR.Core.Domain\TB.AI.OKR.Core.Domain.csproj", "{7329D1AA-9849-4F9A-B076-E24DA9FC722F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TB.AI.OKR.Infrastructure.Persistence", "TB.AI.OKR.Infrastructure.Persistence\TB.AI.OKR.Infrastructure.Persistence.csproj", "{12B39257-ADD3-4EA3-BE4D-49C1B2DB21BE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OkrML.WebApi", "OkrML.WebApi\OkrML.WebApi.csproj", "{7429A770-0110-49D4-B057-0189F4D379CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TB.Tools.DataLabeler.TestDeterministic.Console", "TB.Tools.DataLabeler.TestDeterministic.Console\TB.Tools.DataLabeler.TestDeterministic.Console.csproj", "{B43F5822-6BF8-41A6-AD8B-BE68AE1E0145}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -107,6 +111,14 @@ Global
 		{12B39257-ADD3-4EA3-BE4D-49C1B2DB21BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{12B39257-ADD3-4EA3-BE4D-49C1B2DB21BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{12B39257-ADD3-4EA3-BE4D-49C1B2DB21BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7429A770-0110-49D4-B057-0189F4D379CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7429A770-0110-49D4-B057-0189F4D379CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7429A770-0110-49D4-B057-0189F4D379CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7429A770-0110-49D4-B057-0189F4D379CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B43F5822-6BF8-41A6-AD8B-BE68AE1E0145}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B43F5822-6BF8-41A6-AD8B-BE68AE1E0145}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B43F5822-6BF8-41A6-AD8B-BE68AE1E0145}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B43F5822-6BF8-41A6-AD8B-BE68AE1E0145}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -128,6 +140,8 @@ Global
 		{2966204A-300E-4D00-B29A-47CB71260502} = {5B61FCF0-F49F-4E4B-8040-8CF9584E09CC}
 		{7329D1AA-9849-4F9A-B076-E24DA9FC722F} = {5B61FCF0-F49F-4E4B-8040-8CF9584E09CC}
 		{12B39257-ADD3-4EA3-BE4D-49C1B2DB21BE} = {B3D77D4B-EE2F-42E6-B528-6BA451E0C871}
+		{7429A770-0110-49D4-B057-0189F4D379CA} = {8F8E1518-F14A-4006-9CDE-5D8CAD44C37A}
+		{B43F5822-6BF8-41A6-AD8B-BE68AE1E0145} = {FC592781-926A-4ADD-B92F-848E10439D85}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {39E8DAD8-A757-480F-872C-D9D996F4CF8C}

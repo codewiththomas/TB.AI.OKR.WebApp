@@ -36,6 +36,62 @@ var labelProviders = new List<LabelProviders>
     LabelProviders.GPT4All_Hermes_LLaMA2
 };
 
+
+#region Check deterministic behavior
+
+foreach (var labelProvider in labelProviders.Where(x => !x.Equals(LabelProviders.Annotator)))
+{
+    var randomElementsCount = 10;
+    var results = new List<double>();
+
+    for (int i = 0; i < randomElementsCount; i++)
+    {
+        var randomElement = await applicationDbContext.OkrSetElements
+            .OrderBy(x => EF.Functions.Random())
+            .Take(1)
+            .FirstAsync();
+
+        var randomElementType = randomElement.Type;
+
+        var scopeForRandomRule = randomElement.Type switch
+        {
+            "objective" => OkrRuleScopes.Objective,
+            "keyresult" => OkrRuleScopes.KeyResult,
+            _ => OkrRuleScopes.OkrSet
+        };
+
+        var randomRule = await applicationDbContext.OkrRules
+            .Where(x => x.Scope == scopeForRandomRule)
+            .Where(x => x.Severity >= OkrRuleSeverities.Should)
+            .OrderBy(x => EF.Functions.Random())
+            .Take(1)
+            .FirstAsync();
+
+        Console.WriteLine($"{randomElement.Id}\t{randomElement.Type}\t{randomElement.Text.Substring(0, 10)}...");
+        Console.WriteLine($"\tLabel rule_{randomRule.Id}");
+
+        var retries = 100;
+        var deterministicBehaviorChecker = new DeterministicBehaviorChecker(config, labelProvider);
+        var determisticCheckResult = await deterministicBehaviorChecker
+            .CheckDetermisticBehavior(randomElement, randomRule, retries);
+
+        Console.WriteLine($"Mean for {labelProvider}: {determisticCheckResult}");
+    }
+    Console.WriteLine("Total Mean for LabelProvider: " + results.Average());
+}
+
+
+
+
+return;
+
+#endregion
+
+
+
+
+
+
 foreach (var labelProvider  in labelProviders)
 {
 
@@ -211,6 +267,7 @@ foreach (var labelProvider  in labelProviders)
                 }
             }
 
+            /* OKR elements */
             else
             {
                 var okrSetElementType = ruleScope switch
